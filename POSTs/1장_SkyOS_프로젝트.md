@@ -113,7 +113,7 @@
 
 ### 프로젝트 빌드 
 
-1. Chapter 폴더의 01_HelloWorld.sln
+1. Chapter 폴더의 **01_HelloWorld.sln**
 
    > 디버그 모드, x86으로 빌드, SDK 1.10.16299.0 버전
    >
@@ -123,7 +123,7 @@
 
 2. 솔루션 빌드
 
-   > 솔루션이 빌드되면 Debug 폴더에 SKYOS32.EXE 파일이 생성된다.
+   > 솔루션이 빌드되면 Debug 폴더에 **SKYOS32.EXE 파일** 이 생성된다.
    >
    > ![Image](https://i.imgur.com/xHAK4Hb.png)
    >
