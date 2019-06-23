@@ -179,20 +179,14 @@
   >
   > 이후 SkyOS.bat 배치파일을 텍스트로 연뒤
   >
-  > > cd C:\Program Files\qemu 
-  > >
-  > > qemu-system-x86_64 -L . -m 128 -fda SkyOS.IMA -soundhw sb16,es1370 -localtime -M pc -boot a
-  > >
-  > > SET /P P = Press any key continue: // 배치파일오류시 바로 꺼지지 않도록 설정
-  > >
-  > > 로 밑의 내용을 수정해준다.
+  > > cd C:\Program Files\qemu<br>qemu-system-x86_64 -L . -m 128 -fda SkyOS.IMA -soundhw sb16,es1370 -localtime -M pc -boot a<br>SET /P P = Press any key continue: // 배치파일오류시 바로 꺼지지 않도록 설정으로 밑의 내용을 수정해준다.
   > >
   > > ![Image](https://i.imgur.com/J5QemSd.png)
-  >
+  > 
   > 이제 실행 하면
-  >
+  > 
   > ![Image](https://i.imgur.com/XNNUZs8.png)
-  >
+  > 
   > **"Hello World!"**
   >
   > ![Image](https://i.imgur.com/nI5Bs45.png)
