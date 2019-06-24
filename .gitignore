@@ -15,3 +15,4 @@
 /Project/MyKernelProject/Debug/*
 /Project/MyKernelProject/.vs/*
 /Project/MyKernelProject/mykernel/Intermediate/*
+*.pptx

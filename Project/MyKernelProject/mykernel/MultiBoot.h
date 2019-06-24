@@ -2,8 +2,10 @@
 #include "stdint.h"
 #include "windef.h"
 
-/*   _emit is DB equivalent but not DD equivalent exist
+/*   _emit is DB(Define Byte - 8bit) equivalent but not DD(Define double word - 4Bytes) equivalent exist
 so we define it ourself */
+// _emit 은 DB(Define Byte - 8bit)는 가능하지만 DD(Define double word - 4Byte(32bit)는 가능하지 않으므로 새로 정의 
+// _emit [Byte] 인자로 넘겨진 바이트들을 직접 기계어 코드로 삽입
 #define dd(x)                            \
         __asm _emit     (x)       & 0xff \
         __asm _emit     (x) >> 8  & 0xff \
@@ -13,6 +15,10 @@ so we define it ourself */
 #define KERNEL_STACK			0x00400000
 #define FREE_MEMORY_SPACE_ADDRESS       0x00400000
 
+// ALIGN 은 GRUB으로 PE커널을 로드할 수 있는 가장 중요한 것 중 하나이다.
+// 왜냐하면 PE header가 파일 시작 부분에 있으므로 코드섹션이 이동되기 때문이다.
+// 코드섹션을 이동시키는데 사용되는 값 (0x400)은 linker 정렬 옵션인 /ALIGN:value이다.
+// 헤더 사이즈의 합계가 512보다 크므로, ALIGN 값은 그보다 더 커야 한다.
 /*  This is the one of most important thing to be able to load a PE kernel
 with GRUB. Because PE header are in the begining of the file, code section
 will be shifted. The value used to shift the code section is the linker
@@ -20,7 +26,42 @@ align option /ALIGN:value. Note the header size sum is larger than 512,
 so ALIGN value must be greater */
 #define   ALIGN               0x400
 
-/*   Must be >= 1Mb for GRUB
+/*
+16진수 용량 빠르게 계산하기
+1KB : 2의 10제곱
+1MB : 2의 20제곱
+1GB : 2의 30제곱
+1TB : 2의 40제곱...
+
+16진수 digit 하나는 2의 4제곱
+
+2의 20제곱의 배수는 다음과 같아진다.
+1MB : 0x100000 ( 0x0이 5개 즉, 2의 4제곱 X 5)
+1TB : 0x100000 00000 (0x0이 10개)
+
+6진수는 자리가 증가할 때마다 16이 곱해진다
+그렇다면 자리가 증가할 때마다 일정 패턴이 있을까?
+0x1          => 1
+0x10        => 16
+0x100       => 256
+0x1000      => 4K
+0x10000     => 64KB
+0x100000  => 1MB(First Pattern으로 간단하게 알 수 있음)
+자리수가 늘어날 때마다
+1=>16=>256=>4(Kilo만큼 단위 증가)=>64=>1(Kilo만큼 단위 증가)
+1MB 단위에서 다시 1이 나왔으므로 MB만 빼면 1=>16=>256...패턴이 되겠군.
+
+- 유용성 테스트
+0x10000000000(0x0이 10개) : First Patten으로 바로 1GB
+
+0x4000
+Second Pattern 사용하여 먼저 사용하여 먼저 0x1000을 구해보면 1=>16=>256=>4K이고
+곱하기 4를 해주면 16K
+출처 http://dimprog.blogspot.com/2018/07/16hex.html
+*/
+
+// GRUB이 0~1Mb(0x100000)를 사용
+/*   Must be >= 1Mb(0x100000) for GRUB
 Base adress from advanced linker option
 */
 #define KERNEL_LOAD_ADDRESS            0x100000
@@ -34,7 +75,7 @@ Base adress from advanced linker option
 #define STACK_SIZE              0x4000    
 #define CHECKSUM            -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS)
 
-#pragma pack(push,1)
+#pragma pack(push,1) // 구조체 정렬 크기 조절 (1바이트로)
 struct MULTIBOOT_HEADER {
 	uint32_t magic;
 	uint32_t flags;
@@ -46,6 +87,10 @@ struct MULTIBOOT_HEADER {
 	uint32_t entry_addr;
 };
 
+/*
+ELF = Excutable and Linkable Format
+실행파일, 목적파일, 공유 라이브러리 그리고 코어 덤프(작업중인 메모리상태를 기록)를 위한 표준 파일 형식
+*/
 struct ELFHeaderTable
 {
 	uint32_t num;
@@ -256,6 +301,13 @@ struct VbeModeInfo
 	char res2[194];
 };
 
+/*
+GRUB은 보호 모드로 전환한 후 커널을 호출 하는데,
+커널 입장에서는 하드웨어 관련 정보를 얻기가 어려우므로 
+GRUB이 커널에 넘겨주는 multiboot_info 구조체를 활용해서
+메모리 사이즈라던지 어떤 디바이스에서 부팅이 되었는지에 대한 정보를 알아낼 수 있다.
+OS는 GRUB가 넘겨준 이 구조체를 통해 시스템 환경을 초기화 한다.
+*/
 struct multiboot_info
 {
 	uint32_t flags;
@@ -307,4 +359,4 @@ typedef struct multiboot_info multiboot_info_t;
 
 
 
-#pragma pack(pop)
+#pragma pack(pop) // 정렬을 원래 상태로 되돌림

@@ -2,13 +2,19 @@
 
 //커널 엔트리 찾기
 
-//GRUB이 요구하는 시그니처( 멀티 부트 헤더 구조체 ) 
+/*
+GRUB이 커널을 호출할 준비가 되었지만,
+커널 엔트리 포인트, 즉 커널 함수 시작 지점을 호출하기 위해 특정 명세(틀)를 준수해야 한다.
+GRUB은 커널이 특정 명세를 지키는지 여부를 커널 최초 80KB(시작부터 ~ +0x14000) 부분을 검색해 특정 시그니처를 찾아 파악한다.
+이 시그니처를 멀티 부트 헤더 구조체 (struct MULTIBOOT_HEADER) 라고 한다.
+*/
+//GRUB이 요구하는 시그니처( 멀티 부트 헤더 구조체 ) MULTIBOOT_HEADER형태로 채워진다.
 _declspec(naked) void multiboot_entry(void)
 {
 	__asm {
 		align 4
-
-		multiboot_header :
+		
+		multiboot_header : 
 		// 멀티 부트 헤더 사이즈 : 0x20
 		dd(MULTIBOOT_HEADER_MAGIC); magic number
 		dd(MULTIBOOT_HEADER_FLAGS); flags
@@ -44,6 +50,7 @@ void InitializeConstructor()
 	//내부 구현은 나중에 추가한다.
 }
 
+// 위 multiboot_entry에서 ebx eax에 푸쉬한 멀티 부트 구조체 포인터(->addr), 매직넘버(->magic)로 호출
 void kmain(unsigned long magic, unsigned long addr)
 {
 	InitializeConstructor(); //글로벌 객체 초기화

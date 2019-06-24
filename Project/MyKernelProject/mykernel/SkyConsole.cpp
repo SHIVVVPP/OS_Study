@@ -4,6 +4,10 @@
 #include <string.h>
 #include "sprintf.h"
 
+/*
+_outp,_outpw 및 _outpd 함수는 각각 byte, word, double word를 지정된 출력포트에 쓴다.
+이런 함수는 I/O 포트에 직접 쓰기 때문에 User Code에서는 사용할 수 없다.
+*/
 extern "C" int _outp(unsigned short, int);
 
 void OutPortByte(ushort port, uchar value)
@@ -111,7 +115,11 @@ namespace SkyConsole
 		default:						// -> all other characters
 			if (c < ' ') break;				// ignore non printable ascii chars
 											//See the article for an explanation of this. Don't forget to add support for new lines
-
+			/*
+			비디오 메모리 영역에 값을 직접 써넣는다!
+			m_pVideoMemory 포인터는 비디오 버퍼를 가리키는 포인터로,
+			이 주소에 접근해서 값을 써 넣으면 화면에 그 값을 출력할 수 있다.
+			*/
 			ushort* VideoMemory = m_pVideoMemory + m_ScreenWidth * m_yPos + m_xPos;
 			uchar attribute = (uchar)((backColour << 4) | (textColour & 0xF));
 

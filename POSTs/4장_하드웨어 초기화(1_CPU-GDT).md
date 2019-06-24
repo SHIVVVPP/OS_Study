@@ -1,4 +1,4 @@
-# 4장 하드웨어 초기화
+# 4장 하드웨어 초기화(CPU-GDT,IDT)
 
 ![Image](https://i.imgur.com/oCtWyvK.png)
 
