@@ -264,7 +264,7 @@
   ```c++
   /* kmain.h */
   #pragma once
-#include "stdint.h"
+  #include "stdint.h"
   #include "defines.h"
   #include "string.h"
   #include "sprintf.h"
