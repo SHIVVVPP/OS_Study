@@ -8,11 +8,12 @@
 *.tlog
 *.pdb
 *.obj
+*.zip
 
-/Project/CommonLib/*
-/Project/Include/*
-/Project/MyKernelProject/CommonLib/*
-/Project/MyKernelProject/Debug/*
-/Project/MyKernelProject/.vs/*
-/Project/MyKernelProject/mykernel/Intermediate/*
+/Test/CommonLib/*
+/Test/Include/*
+/Test/OSProject/CommonLib/*
+/Test/OSProject/Debug/*
+/Test/OSProject/.vs/*
+/Test/OSProject/SkyOS32/Intermediate/*
 *.pptx
