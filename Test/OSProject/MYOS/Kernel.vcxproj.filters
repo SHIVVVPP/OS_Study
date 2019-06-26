@@ -12,7 +12,7 @@
     <ClCompile Include="CPU\PIC.cpp" />
     <ClCompile Include="CPU\HAL.cpp" />
     <ClCompile Include="CPU\PIT.cpp" />
-    <ClCompile Include="CPU\SkyAPI.cpp" />
+    <ClCompile Include="SkyAPI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kmain.h" />
@@ -27,7 +27,7 @@
     <ClInclude Include="CPU\PIC.h" />
     <ClInclude Include="CPU\HAL.h" />
     <ClInclude Include="CPU\PIT.h" />
-    <ClInclude Include="CPU\SkyAPI.h" />
+    <ClInclude Include="SkyAPI.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CPU">

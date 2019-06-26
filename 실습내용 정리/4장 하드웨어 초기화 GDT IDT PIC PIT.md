@@ -506,6 +506,10 @@ bool IDTInitialize(uint16_t codeSel) {
 #include <stdint.h>
 
 /*
+하드웨어 장치와 데이터를 주고받을 수 있게 하는 틀을 마련한다.
+*/
+
+/*
 PIC - Programmable Interrupt Controller
 키보드나 마우스 등의 이번트 등을 CPU에 전달하는 제어기
 ex) 유저가 키보드를 누르면 PIC가 그 신호를 감지하고 인터럽트를 발생시켜 운영체제에 등록된 예외 핸들러를 실행시킨다.
@@ -514,6 +518,8 @@ ex) 유저가 키보드를 누르면 PIC가 그 신호를 감지하고 인터럽
 
 OS는 IRQ(인터럽트 리퀘스트) 신호를 통해 해당 인터럽트의 고유 번호를 알 수 있고, 이 번호를 통해 해당 인터럽트의
 출처가 어딘지를 알 수 있다.
+IRQ 번호는 마스터에서 슬레이브 순으로 핀 번호를 할당한 것이다.
+디바이스에 관련된 인터럽트 핀을 말할 때, 핀 번호 대신 IRQ 번호를 사용한다.
 */
 
 //인터럽트를 발생시키기 위해 PIC1을 사용하는 디바이스 리스트 // Master
@@ -553,22 +559,25 @@ PIC의 IRQ핀의 작동
 //--------------------------------------------
 //		디바이스를 제어하기 위한 커맨드
 //--------------------------------------------
+// PIC 컨트롤러는 크게 두 가지 타입의 커맨드를 제공한다.
+// 하나는 초기화와 관련된 ICW(Initialization Command Word) 커맨드
+// 다른 하나는 제어와 관련된 OCW(Operation Command Word) 커맨드이다.
 
 // common word 2 bit masks. 커맨드를 보낼 때 사용한다.
 #define		I86_PIC_OCW2_MASK_L1		1		//00000001
 #define		I86_PIC_OCW2_MASK_L2		2		//00000010
-#define		I86_PIC_OCW2_MASK_L3		4		//00000100
-#define		I86_PIC_OCW2_MASK_EOI		0x20	//00100000
-#define		I86_PIC_OCW2_MASK_SL		0x40	//01000000
-#define		I86_PIC_OCW2_MASK_ROTATE	0x80	//10000000
+#define		I86_PIC_OCW2_MASK_L3		4		//00000100 
+#define		I86_PIC_OCW2_MASK_EOI		0x20	//00100000 
+#define		I86_PIC_OCW2_MASK_SL		0x40	//01000000 
+#define		I86_PIC_OCW2_MASK_ROTATE	0x80	//10000000 
 
 //! Command Word 3 bit masks. 커맨드를 보낼때 사용
 #define		I86_PIC_OCW3_MASK_RIS		1		//00000001
 #define		I86_PIC_OCW3_MASK_RIR		2		//00000010
 #define		I86_PIC_OCW3_MASK_MODE		4		//00000100
 #define		I86_PIC_OCW3_MASK_SMM		0x20	//00100000
-#define		I86_PIC_OCW3_MASK_ESMM		0x40	//01000000
-#define		I86_PIC_OCW3_MASK_D7		0x80	//10000000
+#define		I86_PIC_OCW3_MASK_ESMM		0x40	//01000000 
+#define		I86_PIC_OCW3_MASK_D7		0x80	//10000000 
 
 
 void PICInitialize(uint8_t base0, uint8_t base1);
@@ -581,6 +590,8 @@ void SendDataToPIC(uint8_t data, uint8_t picNum);
 
 // PIC로 명령어를 전송한다.
 void SendCommandToPIC(uint8_t cmd, uint8_t picNum);
+
+
 ```
 
 #### PIC.cpp
@@ -593,11 +604,36 @@ void SendCommandToPIC(uint8_t cmd, uint8_t picNum);
 
 #include "PIC.h"
 #include "HAL.h"
+//-----------------------------------------------
+//	64비트 멀티 코어 OS 415page
+//-----------------------------------------------
 
-//http://www.eeeguide.com/programming-8259/
 //-----------------------------------------------
 //	Controller Registers
 //-----------------------------------------------
+
+/*
+PIC 컨트롤러는 키보드 컨트롤러와 마찬가지로 I/O 포트 방식으로 연결되어 있다.
+우리가 사용하는 PC는 PIC 컨트롤러에 각각 두 개의 I/O 포트를 할당하며,
+마스터 PIC 컨트롤러는 0x20과 0x21을 사용하고
+슬레이브 PIC 컨트롤러는 0xA0와 0xA1를 사용한다.
+PIC 컨트롤러에 할당된 I/O 포트는 읽기와 쓰기가 모두 가능하다.
+
+I/O포트와 PIC 컨트롤러와의 관계
+
+				포트 번호							읽기 수행			쓰기수행
+마스터 PIC 컨트롤러		슬레이브 PIC 컨트롤러
+---------------------------------------------------------------------------
+0x20				|	0xA0				|	IRR 레지스터	|	ICW1 커맨드
+					|						|	ISR 레지스터	|	OCW2 커맨드
+					|						|				|	OCW3 커맨드
+---------------------------------------------------------------------------
+0x21				|	0xA1				|	IMR 레지스터	|	ICW2 커맨드
+					|						|				|	ICW3 커맨드
+					|						|				|	ICW4 커맨드
+					|						|				|	OCW1 커맨드
+---------------------------------------------------------------------------
+*/
 
 //! PIC 1 register port addresses
 #define I86_PIC1_REG_COMMAND	0x20
@@ -664,6 +700,11 @@ void SendCommandToPIC(uint8_t cmd, uint8_t picNum);
 
 
 
+/*
+PIC 컨트롤러의 초기화 작업은 마스터 및 슬레이브 PIC 컨트롤러에 개별적으로 수행해야 한다.
+초기화에 사용하는 값은 마스터 PIC 컨트롤러와 슬레이브 PIC 컨트롤러가 거의 같다.
+*/
+// PICInitialize(0x20, 0x28); 0x20으로 설정하면 PIC 컨트롤러 0~7번 핀의 인터럽트는 프로세서의 벡터 0x20~0x27로 전달된다.
 void PICInitialize(uint8_t base0, uint8_t base1)
 {
 	/*
@@ -671,33 +712,93 @@ void PICInitialize(uint8_t base0, uint8_t base1)
 	이를 위해 마스터 PIC의 명령 레지스터로 명령을 전달해야 하는데 이때 ICW(Initialization Control Word)가 사용된다.
 	이 ICW는 4가지의 초기화 명령어로 구성된다.
 	*/
+
+	/*
+	PIC 컨트롤러를 초기화 하는 작업은 ICW1 커맨드를 I/O 포트 0x20 또는 0xA0에 쓰는 것으로 시작한다.
+	0x20나 0xA0 포트로 ICW1을 보내면 0x21나 0xA1 포트에 쓰는 데이터는 ICW2,ICW3,ICW4 순으로 해석되며,
+	전송이 완료되면 PIC 컨트롤러는 수신된 데이터를 바탕으로 자신을 초기화 한다.
+	*/
+
+	// 0 마스터 PIC 포트, 1 슬레이브 PIC 포트
+
 	uint8_t	icw = 0;
 
 	// PIC 초기화 ICW1 명령을 보낸다.
+	/*
+	ICW1 커맨드의 필드는 마스터와 슬레이브가 같으며, 트리거 모드와 캐스케이드 여부, ICW4의 사용 여부를 설정한다.
+	키보드와 마우스 같은 PC 디바이스는 엣지 트리거 방식을 사용하고, PIC 컨트롤러는 마스터-슬레이브 방식으로 동작하므로,
+	LTIM 비트 = 0, SNGL = 0으로 설정하면 된다. 또한 PC는 8086 호환 모드로 동작하므로 ICW4 커맨드가 필요하다.
+	따라서 IC4=1로 설정하여 ICW4 커맨드를 사용하겠다는 것을 알린다.
+	*/
+	// (0000 0000 & ~(0001 0000)) | (0001 0000)
+	//				 (1110 1111)
+	//	0001 0000
 	icw = (icw & ~I86_PIC_ICW1_MASK_INIT) | I86_PIC_ICW1_INIT_YES;
+
+	// (0001 0000 & ~(0000 0001)) | (0001 0000)
+	//				 (1111 1110)
+	// (0001 0001) | (0001 0000)
+	//  0001 0001 => 0x11
 	icw = (icw & ~I86_PIC_ICW1_MASK_IC4) | I86_PIC_ICW1_IC4_EXPECT;
 
-	SendCommandToPIC(icw, 0);
-	SendCommandToPIC(icw, 1);
+	//SendCommandToPIC(icw, 0); // 0x11 (0001 0001) LTIM 비트 = 0, SNGL 비트 = 0, IC4 비트 = 1
+	//SendCommandToPIC(icw, 1);
+	SendCommandToPIC(0x11, 0);
+	SendCommandToPIC(0x11, 1);
 
 	//! PIC에 ICW2 명령을 보낸다. base0와 base1은 IRQ의 베이스 주소를 의미한다.
-	SendDataToPIC(base0, 0);
-	SendDataToPIC(base1, 1);
+	/*
+	ICW2 커맨드의 필드도 ICW1과 같이 마스터와 슬레이브 모두 같고, 
+	인터럽트가 발생했을 때 프로세서에 전달할 벡터 번호를 설정하는 역할을 한다.
+	벡터 0~31번은 프로세서가 예외를 처리하려고 예약해둔 영역이며, 이 영역을 피하려면 32번 이후로 설정해야 한다.
+	PIC 컨트롤러의 인터럽트를 벡터 32번부터 할당하려면 PIC 컨트롤러의 ICW2를 0x20(32)로 설정하고,
+	슬레이브 PIC 컨트롤러의 ICW2를 0x28(40)으로 설정하면 된다.
+	*/
+	SendDataToPIC(base0, 0); // 마스터 PIC에 인터럽트 벡터를 0x20(32) 부터 차례로 할당
+	SendDataToPIC(base1, 1); // 슬레이브 PIC에 인터럽트 벡터를 0x28(40) 부터 차례로 할당
 
 	//PIC에 ICW3 명령을 보낸다. 마스터와 슬레이브 PIC와의 관계를 정립한다.
-
+	/*
+	ICW3 커맨드의 역할은 마스터 PIC 컨트롤러의 몇 번 핀에 슬레이브 PIC 컨트롤러가 연결되었나 하는 것이다.
+	ICW3 커맨드의 의미는 두 컨트롤러가 같지만, 필드의 구성은 서로 다르다.
+	마스터 PIC 컨트롤러의 ICW3 커맨드 슬레이브 PIC 컨트롤러가 연결된 핀의 위치를 비트로 설정하며,
+	슬레이브 PIC 컨트롤러의 ICW3 커맨드는 마스터 PIC 컨트롤러에 연결된 핀의 위치를 숫자로 설정한다.
+	PC의 슬레이브 PIC 컨트롤러는 마스터 PIC 컨트롤러의 2번째 핀에 연결되어 있으므로 
+	마스터 PIC 컨트롤러의 ICW3은 0x04(비트2 = 1)로 설정하고 슬레이브 PIC 컨트롤러의 ICW3은 0x02로 설정한다.
+	*/
 	SendDataToPIC(0x04, 0);
 	SendDataToPIC(0x02, 1);
 
 	//ICW4 명령을 보낸다. i86 모드를 활성화 한다.
-
+	/*
+	ICW4 커맨드 필드 역시 마스터와 슬레이브가 같고, EOI 전송 모드와 8086 모드, 확장 기능을 설정한다.
+	PC의 PIC 컨트롤러는 8086시절과 별로 변한 것이 없으므로 UMP 비트 = 1 로 설정하여 8086모드로 지정하고,
+	이를 제외한 버퍼 모드 같은 확장 기능은 PC에서 사용하지 않으므로 
+	나머지 SFNM 비트, BUF비트, M/S 비트는 모두 0으로 설정한다.
+	*/
+	// (0001 0001 & ~(0000 0001)) | 0000 0001
+	//				 (1111 1110)
+	//  0001 0000 | 0000 0001
+	//  0001 0001???
 	icw = (icw & ~I86_PIC_ICW4_MASK_UPM) | I86_PIC_ICW4_UPM_86MODE;
 
-	SendDataToPIC(icw, 0);
-	SendDataToPIC(icw, 1);
+	//SendDataToPIC(icw, 0);
+	//SendDataToPIC(icw, 1);
+	SendDataToPIC(0x11, 0); // 0x01, 0x11 상관없음
+	SendDataToPIC(0x11, 1);
 	//PIC 초기화 완료
 
+	/*
+	PIC가 초기화 되면,
+	EX) 유저가 키보드를 누르면 PIC가 그 신호를 감지하고 인터럽트를 발생시켜
+	운영체제에 *등록된* 예외 핸들러를 실행시킨다! 
+	*/
 }
+
+// 0이면 0x20포트(마스터 PIC 포트) 1이면 0xA0포트(슬레이브 PIC 포트)
+
+// OutPortByte, OutPortWord, OutPortDWord,
+// InPortByte, InPortWord, InPortDWord
 
 //PIC로 명령을 보낸다
 inline void SendCommandToPIC(uint8_t cmd, uint8_t picNum) {
@@ -706,7 +807,7 @@ inline void SendCommandToPIC(uint8_t cmd, uint8_t picNum) {
 		return;
 
 	uint8_t	reg = (picNum == 1) ? I86_PIC2_REG_COMMAND : I86_PIC1_REG_COMMAND;
-	OutPortByte(reg, cmd); // HAL 에서 추가되는 함수
+	OutPortByte(reg, cmd);
 }
 
 
@@ -717,7 +818,7 @@ inline void SendDataToPIC(uint8_t data, uint8_t picNum) {
 		return;
 
 	uint8_t	reg = (picNum == 1) ? I86_PIC2_REG_DATA : I86_PIC1_REG_DATA;
-	OutPortByte(reg, data); // HAL 에서 추가되는 함수
+	OutPortByte(reg, data);
 }
 
 
@@ -728,8 +829,9 @@ inline uint8_t ReadDataFromPIC(uint8_t picNum) {
 		return 0;
 
 	uint8_t	reg = (picNum == 1) ? I86_PIC2_REG_DATA : I86_PIC1_REG_DATA;
-	return InPortByte(reg); // HAL 에서 추가되는 함수
+	return InPortByte(reg);
 }
+
 ```
 
 <hr>

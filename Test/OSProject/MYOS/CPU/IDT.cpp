@@ -15,9 +15,14 @@ static void IDTInstall() {
 #endif
 }
 
-#define DMA_PICU1       0x0020
-#define DMA_PICU2       0x00A0
+#define DMA_PICU1       0x0020 // IO base Address for master PIC
+#define DMA_PICU2       0x00A0 // IO base address for slave PIC
 //PIT 구현하면서 추가 S
+/*
+EOI - End Of Interrupt
+EOI(End Of Interrupt) 는 PIC(Programmable Interrupt Controller)로 보내지는 신호이며,
+주어진 인터럽트에 대한 인터럽트 처리 완료를 나타낸다.
+*/
 __declspec(naked) void SendEOI()
 {
 	_asm
