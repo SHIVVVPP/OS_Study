@@ -108,6 +108,11 @@ void PICInitialize(uint8_t base0, uint8_t base1)
 	SendDataToPIC(icw, 1);
 	//PIC 초기화 완료
 
+	/*
+	PIC가 초기화 되면,
+	EX) 유저가 키보드를 누르면 PIC가 그 신호를 감지하고 인터럽트를 발생시켜
+	운영체제에 *등록된* 예외 핸들러를 실행시킨다! 
+	*/
 }
 
 
