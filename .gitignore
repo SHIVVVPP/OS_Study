@@ -10,8 +10,6 @@
 *.obj
 *.zip
 
-/Test/CommonLib/*
-/Test/Include/*
 /Test/OSProject/CommonLib/*
 /Test/OSProject/Debug/*
 /Test/OSProject/.vs/*
