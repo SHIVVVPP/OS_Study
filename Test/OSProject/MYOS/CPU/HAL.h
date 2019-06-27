@@ -42,3 +42,21 @@ long InPortDWord(unsigned int port);
 
 //PIT 만들면서 추가
 void setvect(int intno, void(&vect)(), int flags = 0);
+
+//Exception 만들면서 추가
+
+#ifdef _MSC_VER
+#define interrupt __declspec(naked)
+#else
+#define interrupt
+#endif
+
+#pragma pack (push, 1)
+typedef struct registers
+{
+	u32int ds, es, fs, gs;                  // Data segment selector
+	u32int edi, esi, ebp, esp, ebx, edx, ecx, eax; // Pushed by pushad.
+	//u32int int_no, err_code;    // Interrupt number and error code (if applicable)
+	u32int eip, cs, eflags, useresp, ss; // Pushed by the processor automatically.
+} registers_t;
+#pragma pack (pop)

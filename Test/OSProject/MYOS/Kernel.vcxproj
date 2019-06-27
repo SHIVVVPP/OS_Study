@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPU\InitKernel.cpp" />
+    <ClCompile Include="Exception.cpp" />
     <ClCompile Include="CPU\FPU.cpp" />
     <ClCompile Include="CPU\GDT.cpp" />
     <ClCompile Include="CPU\HAL.cpp" />
@@ -22,6 +24,8 @@
     <ClCompile Include="SkyConsole.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CPU\InitKernel.h" />
+    <ClInclude Include="Exception.h" />
     <ClInclude Include="CPU\FPU.h" />
     <ClInclude Include="CPU\GDT.h" />
     <ClInclude Include="CPU\HAL.h" />

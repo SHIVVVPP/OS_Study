@@ -14,6 +14,8 @@
     <ClCompile Include="CPU\PIT.cpp" />
     <ClCompile Include="SkyAPI.cpp" />
     <ClCompile Include="CPU\FPU.cpp" />
+    <ClCompile Include="Exception.cpp" />
+    <ClCompile Include="CPU\InitKernel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kmain.h" />
@@ -30,6 +32,8 @@
     <ClInclude Include="CPU\PIT.h" />
     <ClInclude Include="SkyAPI.h" />
     <ClInclude Include="CPU\FPU.h" />
+    <ClInclude Include="Exception.h" />
+    <ClInclude Include="CPU\InitKernel.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CPU">

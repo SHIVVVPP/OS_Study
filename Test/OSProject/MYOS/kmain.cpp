@@ -85,6 +85,18 @@ void TestFPU()
 	SkyConsole::Print("Sample Float Value %f\n", sampleFloat);
 }
 
+int _divider = 0;
+int _dividend = 100;
+void TestInterrupt()
+{
+	int result = _dividend / _divider;
+
+	if (_divider != 0)
+		result = _dividend / _divider;
+
+	SkyConsole::Print("Result is %d, divider : %d\n", result, _divider);
+}
+
 // 위 multiboot_entry에서 ebx eax에 푸쉬한 멀티 부트 구조체 포인터(->addr), 매직넘버(->magic)로 호출
 void kmain(unsigned long magic, unsigned long addr)
 {
@@ -98,6 +110,8 @@ void kmain(unsigned long magic, unsigned long addr)
 	HardwareInitialize();
 	SkyConsole::Print("Hardware Init Complete\n");
 	
+	SetInterruptVector();
+
 	kLeaveCriticalSection(&g_criticalSection);
 	
 	if (false == InitFPU())
@@ -108,13 +122,15 @@ void kmain(unsigned long magic, unsigned long addr)
 	{
 		EnableFPU();
 		SkyConsole::Print("FPU Init...\n");
-		TestFPU();
+		//TestFPU();
 	}
 
-
-
 	//타이머를 시작한다.
-	//StartPITCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
+	StartPITCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
+
+	TestInterrupt();
+
+	for (;;);
 }
 
 // 하드웨어 초기화

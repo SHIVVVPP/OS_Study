@@ -5,6 +5,7 @@
 #include "sprintf.h"
 #include "MultiBoot.h"
 #include "SkyConsole.h"
+#include "InitKernel.h"
 #include "SkyAPI.h"
 #include "GDT.h"
 #include "IDT.h"

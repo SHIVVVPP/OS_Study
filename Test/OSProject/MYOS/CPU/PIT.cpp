@@ -52,11 +52,11 @@ __declspec(naked) void InterruptPITHandler()
 	_lastTickCount 변수와의 차가 100이면 타이머 문자열을 출력한다.
 	StartPITCounter 함수 호출 시 진동수 값을 100으로 설정했기 때문에 위의
 	프로시저에서 두 개의 변수값의 차가 100일때, 즉 1초마다 문자열이 정확히 출력된다.*/
-	if (_pitTicks - _lastTickCount >= 100)
+	/*if (_pitTicks - _lastTickCount >= 100)
 	{
 		_lastTickCount = _pitTicks;
 		SkyConsole::Print("Timer Count : %d\n", _pitTicks);
-	}
+	}*/
 
 	_pitTicks++;
 
