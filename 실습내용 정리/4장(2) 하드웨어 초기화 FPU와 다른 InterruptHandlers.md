@@ -438,3 +438,30 @@ void kmain(unsigned long magic, unsigned long addr)
 
 ![image](https://user-images.githubusercontent.com/34773827/60241312-f7963c00-98ed-11e9-8322-271774fd6103.png)
 
+#### 여기서 Exception.cpp의 HandleDivideByZero()를 바꿔서 처리하면
+
+```c++
+/* Exception.cpp */
+
+#include "kmain.h" // 추가
+
+//void HandleDivideByZero(registers_t regs)
+//{
+//	kExceptionMessageHeader();
+//	SkyConsole::Print("Divide by 0 at Address[0x%x:0x%x]\n", regs.cs, regs.eip);
+//	SkyConsole::Print("EFLAGS[0x%x]\n", regs.eflags);
+//	SkyConsole::Print("ss : 0x%x\n", regs.ss);
+//	for (;;);
+//}
+
+extern int _divider;
+void HandleDivideByZero(registers_t regs)
+{
+	_divider = 10;
+}
+```
+
+### 실행화면
+
+![image](https://user-images.githubusercontent.com/34773827/60241991-98392b80-98ef-11e9-8304-c4d7fd2cf0e7.png)
+

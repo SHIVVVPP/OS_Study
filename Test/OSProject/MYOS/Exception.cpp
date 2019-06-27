@@ -5,6 +5,8 @@
 #include "sprintf.h"
 #include "string.h"
 
+//#include "kmain.h"
+
 #pragma warning (disable:4100)
 
 static char* sickpc = " (>_<) MY OS Error!\n\n";
@@ -34,6 +36,12 @@ void HandleDivideByZero(registers_t regs)
 	SkyConsole::Print("ss : 0x%x\n", regs.ss);
 	for (;;);
 }
+
+//extern int _divider;
+//void HandleDivideByZero(registers_t regs)
+//{
+//	_divider = 10;
+//}
 
 interrupt void kHandleDivideByZero()
 {
