@@ -15,15 +15,14 @@ static void IDTInstall() {
 #endif
 }
 
-#define DMA_PICU1       0x0020 // IO base Address for master PIC
-#define DMA_PICU2       0x00A0 // IO base address for slave PIC
-//PIT 구현하면서 추가 S
 /*
 EOI - End Of Interrupt
 EOI(End Of Interrupt) 는 PIC(Programmable Interrupt Controller)로 보내지는 신호이며,
 주어진 인터럽트에 대한 인터럽트 처리 완료를 나타낸다.
 */
-__declspec(naked) void SendEOI()
+#define DMA_PICU1       0x0020 // IO base Address for master PIC
+#define DMA_PICU2       0x00A0 // IO base address for slave PIC
+__declspec(naked) void SendEOI() //PIT 구현하면서 추가 E
 {
 	_asm
 	{
@@ -48,15 +47,14 @@ __declspec(naked) void SendEOI()
 			RET
 	}
 }
-//PIT 구현하면서 추가 E
 
 
 //다룰수 있는 핸들러가 존재하지 않을때 호출되는 기본 핸들러
 __declspec(naked) void InterrputDefaultHandler () {
 
-	//레지스터를 저장하고 인터럽트를 끈다.
+	//레지스터를 저장하고 인터럽트를 끈다. 
 	_asm {
-		cli
+		cli // cliear interrupt 인터럽트 플래그를 0(interrupt disable)으로 설정
 		pushad
 	}
 
@@ -65,7 +63,7 @@ __declspec(naked) void InterrputDefaultHandler () {
 		mov al, 0x20
 		out 0x20, al
 		popad
-		sti
+		sti // set interrupt 인터럽트 플래그를 1(interrupt enable)로 설정
 		iretd
 	}
 }
@@ -79,7 +77,7 @@ idt_descriptor* GetInterruptDescriptor(uint32_t i) {
 	return &_idt[i];
 }
 
-//인터럽트 핸들러 설치
+//인터럽트 핸들러 설치	//I86_IRQ_HANDLER - 인터럽트 핸들러 함수 
 bool InstallInterrputHandler(uint32_t i, uint16_t flags, uint16_t sel, I86_IRQ_HANDLER irq) {
 
 	if (i>I86_MAX_INTERRUPTS)
@@ -88,7 +86,7 @@ bool InstallInterrputHandler(uint32_t i, uint16_t flags, uint16_t sel, I86_IRQ_H
 	if (!irq)
 		return false;
 
-	//인터럽트의 베이스 주소를 얻어온다.
+	//인터럽트(함수)의 베이스 주소를 얻어온다.
 	uint64_t		uiBase = (uint64_t)&(*irq);
 	
 	if ((flags & 0x0500) == 0x0500) {

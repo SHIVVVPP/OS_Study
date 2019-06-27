@@ -326,6 +326,8 @@ GDT를 통해 주소를 변환하는 과정을 세그멘테이션이라고 한�
 
 논리주소가 선형주소로 변형되는 과정은, 다음과 같다.
 
+![image](https://user-images.githubusercontent.com/34773827/60231474-4040fb80-98d4-11e9-928d-f7679eed7060.png)
+
 ![image](https://user-images.githubusercontent.com/34773827/59975524-ae936e80-95f3-11e9-9c8c-563066467651.png)
 
 > **논리주소는 세그먼트 셀렉터(16bit)와 Offset(변위 32bit)로 이루어 져있다.**
@@ -383,7 +385,7 @@ GDT에는 세그먼트( 특정 메모리 구역 )에 대한 기술이 포함되�
 >
 > 이런 페이징 기능을 이용하는 가장 근본적인 이유는 복수의 프로세스가 실행될 때,<br>**모든 프로세스에게 동일한 가상공간을 제공하기 위해서이다.**( 0번지에서 4GB 까지 )
 
-
+![image](https://user-images.githubusercontent.com/34773827/60231516-6cf51300-98d4-11e9-9297-5f6a4705774a.png)
 
 ## GDT 정리
 

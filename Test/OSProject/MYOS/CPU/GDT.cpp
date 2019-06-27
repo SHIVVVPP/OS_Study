@@ -4,33 +4,8 @@
 #include "windef.h"
 #include "defines.h"
 
-#ifdef _MSC_VER
-#pragma pack (push, 1)
-#endif
-
-/*
-GDTR 레지스터 구조체
-	GDT를 만들었으면 GDT가 어디에 위치하는지 CPU에 알려주어야 한다.
-	CPU는 GDTR 레지스터를 참조해서 GDT에 접근하므로 GDTR레지스터에 적절한 값을 설정해야 한다.
-	어셈블리 명령중 lgdt 명령어가 GDTR 레지스터에 값을 설정한다.
-*/
-struct gdtr {
-
-	//! size of gdt
-	uint16_t		m_limit;
-
-	//! base address of gdt
-	uint32_t		m_base;
-};
-
-#ifdef _MSC_VER
-#pragma pack (pop, 1)
-#endif
-
-
 //! global descriptor table is an array of descriptors
 static struct gdt_descriptor	_gdt [MAX_DESCRIPTORS];
-
 //! gdtr data
 static struct gdtr				_gdtr;
 
@@ -81,7 +56,7 @@ int GDTInitialize()
 	//디스크립터의 수를 나타내는 MAX_DESCRIPTORS의 값은 5이다.
 	//NULL 디스크립터, 커널 코드 디스크립터, 커널 데이터 디스크립터, 유저 코드 디스크립터
 	//유저 데이터 디스크립터 이렇게 총 5개이다.
-	//디스크립터당 6바이트이므로 GDT의 크기는 30바이트다.
+	//디스크립터당 8바이트이므로 GDT의 크기는 40바이트다.
 	_gdtr.m_limit = (sizeof(struct gdt_descriptor) * MAX_DESCRIPTORS) - 1;
 	_gdtr.m_base = (uint32_t)&_gdt[0];
 
