@@ -60,7 +60,7 @@
   - [winImage 다운로드 사이트](http://www.winimage.com/)
   
     ![Image](https://i.imgur.com/Em86Z6v.png)
-- QEMU
+- QEMU (각자 실습 폴더를 만들어 설치하자)
   - 가상 머신 환경 제공 프로그램
   - [QEMU 다운로드 사이트1](www.omledom.com)
     - 64bit
