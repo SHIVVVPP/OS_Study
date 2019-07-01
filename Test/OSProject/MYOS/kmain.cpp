@@ -1,5 +1,7 @@
 ﻿#include "kmain.h"
-
+#include "PhysicalMemoryManager.h"
+#include "VirtualMemoryManager.h"
+#include "Exception.h"
 #include "FPU.h"
 
 //커널 엔트리 찾기
@@ -74,9 +76,7 @@ _declspec(naked) void multiboot_entry(void)
 }
 
 void HardwareInitialize();
-
-
-
+bool InitMemoryManager(multiboot_info* bootinfo);
 
 void TestFPU()
 {
@@ -100,19 +100,31 @@ void TestInterrupt()
 // 위 multiboot_entry에서 ebx eax에 푸쉬한 멀티 부트 구조체 포인터(->addr), 매직넘버(->magic)로 호출
 void kmain(unsigned long magic, unsigned long addr)
 {
+	//add
+	InitializeConstructors();
+
+	multiboot_info* pBootInfo = (multiboot_info*)addr;
+	//-
+
 	SkyConsole::Initialize();
 
+	//add
+	//헥사를 표시할 때 %X는 integer, %x는 unsigned integer의 헥사값을 표시한다.
 	SkyConsole::Print("*** MY OS Console System Init ***\n");
 
+	SkyConsole::Print("GRUB Information\n");
+	SkyConsole::Print("Boot Loader Name : %s\n", (char*)pBootInfo->boot_loader_name);
+	//-
+
 	// 하드웨어 초기화 과정중 인터럽트가 발생하지 않아야 하므로
-	kEnterCriticalSection(&g_criticalSection);
+	kEnterCriticalSection();
 
 	HardwareInitialize();
 	SkyConsole::Print("Hardware Init Complete\n");
 	
 	SetInterruptVector();
+	SkyConsole::Print("Interrupt Handler Init Complete\n");
 
-	kLeaveCriticalSection(&g_criticalSection);
 	
 	if (false == InitFPU())
 	{
@@ -125,10 +137,17 @@ void kmain(unsigned long magic, unsigned long addr)
 		//TestFPU();
 	}
 
-	//타이머를 시작한다.
+	// 물리/ 가상 메모리 매니저 초기화
+	InitMemoryManager(pBootInfo);
+	SkyConsole::Print("Memory Manager Init Complete\n");
+
+
+	kLeaveCriticalSection();
+	////타이머를 시작한다.
+	
 	StartPITCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
 
-	TestInterrupt();
+	//TestInterrupt();
 
 	for (;;);
 }
@@ -140,6 +159,23 @@ void HardwareInitialize()
 	IDTInitialize(0x8);
 	PICInitialize(0x20, 0x28);
 	InitializePIT();
+}
+
+bool InitMemoryManager(multiboot_info* pBootInfo)
+{
+	// 물리/가상 메모리 매니저를 초기화한다.
+	// 기본 설정 시스템 메모리는 128MB
+	SkyConsole::Print("Memory Manager Init Complete\n");
+
+	PhysicalMemoryManager::EnablePaging(false);
+
+	//물리 메모리 매니저 초기화
+	PhysicalMemoryManager::Initialize(pBootInfo);
+
+	//가상 메모리 매니저 초기화
+	VirtualMemoryManager::Initialize();
+
+	return true;
 }
 
 

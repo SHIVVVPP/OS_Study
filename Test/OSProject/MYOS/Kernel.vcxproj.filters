@@ -16,6 +16,10 @@
     <ClCompile Include="CPU\FPU.cpp" />
     <ClCompile Include="Exception.cpp" />
     <ClCompile Include="CPU\InitKernel.cpp" />
+    <ClCompile Include="Memory\PageDirectoryEntry.cpp" />
+    <ClCompile Include="Memory\PageTableEntry.cpp" />
+    <ClCompile Include="Memory\PhysicalMemoryManager.cpp" />
+    <ClCompile Include="Memory\VirtualMemoryManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kmain.h" />
@@ -34,6 +38,11 @@
     <ClInclude Include="CPU\FPU.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="CPU\InitKernel.h" />
+    <ClInclude Include="Memory\PageDirectoryEntry.h" />
+    <ClInclude Include="Memory\PageTableEntry.h" />
+    <ClInclude Include="Memory\PhysicalMemoryManager.h" />
+    <ClInclude Include="Memory\VirtualMemoryManager.h" />
+    <ClInclude Include="SkyOS.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CPU">

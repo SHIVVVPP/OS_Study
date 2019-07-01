@@ -1,6 +1,7 @@
 #pragma once
 #include "windef.h"
 
+
 /*
 HAL (Hardware Abstraction Layer)
 하드웨어 추상화 레이어
@@ -60,3 +61,22 @@ typedef struct registers
 	u32int eip, cs, eflags, useresp, ss; // Pushed by the processor automatically.
 } registers_t;
 #pragma pack (pop)
+
+
+// PhysicalMemoryManager 생성시 추가
+
+#define PAGE_SIZE 4096  // 페이지의 크기는 4096
+
+// PAGE_SIZE 는 4096 이므로 PAGE_SIZE -1 = 1111 1111 1111
+// 만약 32bit 라면, ~(PAGE_SIZE - 1) = 11111111 11111111 11110000 00000000
+// PAGE_TABLE_ENTRY 구조가
+//	페이지 기준 주소[31:12](20bit) Available[11:9](3bit) opation[8:0](9bit) 이므로
+// 주소 값만 얻어올 수 있다.
+#define PAGE_ALIGN_DOWN(value)	((value) & ~(PAGE_SIZE - 1))
+
+// PAGE - 1 = 1111 1111 1111
+// 끝자리가 0000 0000 0000 이라면
+// value 그대로
+// 아니라면 PAGE_ALIGN_DOWN + PAGE_SIZE 한 주소값
+#define PAGE_ALIGN_UP(value)	((value) & (PAGE_SIZE -1)) ? \
+									(PAGE_ALIGN_DOWN((value)) + PAGE_SIZE) : ((value))

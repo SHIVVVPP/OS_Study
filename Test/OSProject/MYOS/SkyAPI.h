@@ -19,3 +19,7 @@ extern CRITICAL_SECTION g_criticalSection;
 void SKYAPI kEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
 void SKYAPI kInitializeCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
 void SKYAPI kLeaveCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
+
+// VirtualMemoryManager
+#define kEnterCriticalSection() __asm PUSHFD __asm CLI
+#define kLeaveCriticalSection() __asm POPFD

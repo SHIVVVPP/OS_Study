@@ -19,6 +19,10 @@
     <ClCompile Include="CPU\IDT.cpp" />
     <ClCompile Include="CPU\PIC.cpp" />
     <ClCompile Include="CPU\PIT.cpp" />
+    <ClCompile Include="Memory\PageDirectoryEntry.cpp" />
+    <ClCompile Include="Memory\PageTableEntry.cpp" />
+    <ClCompile Include="Memory\PhysicalMemoryManager.cpp" />
+    <ClCompile Include="Memory\VirtualMemoryManager.cpp" />
     <ClCompile Include="SkyAPI.cpp" />
     <ClCompile Include="kmain.cpp" />
     <ClCompile Include="SkyConsole.cpp" />
@@ -32,6 +36,11 @@
     <ClInclude Include="CPU\IDT.h" />
     <ClInclude Include="CPU\PIC.h" />
     <ClInclude Include="CPU\PIT.h" />
+    <ClInclude Include="Memory\PageDirectoryEntry.h" />
+    <ClInclude Include="Memory\PageTableEntry.h" />
+    <ClInclude Include="Memory\PhysicalMemoryManager.h" />
+    <ClInclude Include="SkyOS.h" />
+    <ClInclude Include="Memory\VirtualMemoryManager.h" />
     <ClInclude Include="SkyAPI.h" />
     <ClInclude Include="kmain.h" />
     <ClInclude Include="MultiBoot.h" />
@@ -86,7 +95,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>./;../../CommonLib;../../Include;./CPU;../../CommonLib/stl</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../CommonLib;../../Include;./CPU;./Memory;../../CommonLib/stl</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;ARCH_X86;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
       <StringPooling>
