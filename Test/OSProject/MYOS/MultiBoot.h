@@ -156,12 +156,13 @@ struct Module
 
 struct multiboot_mmap_entry
 {
-	uint32_t size;
-	uint64_t addr;
-	uint64_t len;
+	uint32_t size;	// size는 최소 20바이트보다 클 수 있는 관련 구조의 크기이다.
+	uint64_t addr;	// base_addr 시작 주소
+	uint64_t len;	// 메모리 영역의 크기
 #define MULTIBOOT_MEMORY_AVAILABLE              1
 #define MULTIBOOT_MEMORY_RESERVED               2
-	uint32_t type;
+	uint32_t type;	// 주소 범위의 다양성 1은 사용 가능한 램, 3은 ACPI 정보를 포함하는 사용가능 메모리
+					// 4는 최대 절전모드에서 보존해야 하는 메모리, 5는 결함이 있는 RAM 모듈
 };
 typedef struct multiboot_mmap_entry multiboot_memory_map_t;
 
@@ -188,14 +189,14 @@ struct drive_info
 
 struct APMTable
 {
-	unsigned short Version;
-	unsigned short CS;
-	unsigned int Offset;
-	unsigned short CS16Bit;	//This is the 16-bit protected mode code segment
-	unsigned short DS;
+	unsigned short Version;	// 버전번호
+	unsigned short CS;		// 보호모드 32비트 코드 세그먼트
+	unsigned int Offset;	// 
+	unsigned short CS16Bit;	// 보호모드 16비트 코드 세그먼트
+	unsigned short DS;		// 보호모드 16비트 데이터 플래그
 	unsigned short Flags;
-	unsigned short CSLength;
-	unsigned short CS16BitLength;
+	unsigned short CSLength;	// 32비트 모드 길이
+	unsigned short CS16BitLength; 
 	unsigned short DSLength;
 };
 
@@ -316,12 +317,14 @@ struct multiboot_info
 	uint32_t mem_lower;
 	uint32_t mem_upper;
 
-	uint32_t boot_device; // 부팅 디바이스의 번호
+	uint32_t boot_device; // 부팅 디바이스의 번호. OS 이미지를 로드한 바이오스 디스크 디바이스를 나타낸다. 
 	char* cmdline; // 커널에 넘기는 command line
 
 	//부팅 모듈 리스트
-	uint32_t mods_count;
-	Module* Modules;
+	// 커널 이미지와 함께 로드된 부팅 모듈과 해당 모듈을 찾을 수 있는 위치를 나타낸다.
+	uint32_t mods_count;	// 로드된 모듈 수
+	Module* Modules;		// 첫 번째 모듈 구조의 물리적 주소
+
 	// 리눅스 파일과 관계된 정보
 	union
 	{
@@ -330,7 +333,7 @@ struct multiboot_info
 	} SymbolTables;
 
 	// 메모리 매핑 정보를 알려준다.
-	// 이 정보를 통해 메모리 특정 블록을 사용할 수 있는지 파악 가능하다.
+	// 바이오스에서 제공하는 시스템의 메모리 맵이 포함된 버퍼의 주소와 길이를 나타낸다.
 	uint32_t mmap_length;
 	uint32_t mmap_addr;
 

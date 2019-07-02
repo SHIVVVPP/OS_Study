@@ -4,10 +4,17 @@
 #include "MultiBoot.h"
 #include "HAL.h"
 
+// 메모리 맵은 4바이트당 32KB 공간을 다룰 수 있다.
+// 메모리 한 블록을 4KB로 설정하였으므로 물리 메모리를 통한 최소 메모리 할당 크기는 4KB(4 * 1024 Byte)이다.
+
+
 //PMM - Physical Memory Manager
-#define PMM_BLOCKS_PER_BYTE	8 
+// 1바이트당 블록 수 (1비트가 하나의 블록을 나타낸다.)
+#define PMM_BLOCKS_PER_BYTE	8	
+// 블록 하나당 메모리 할당 크기 4KB(4 * 1024 Byte)
 #define PMM_BLOCK_SIZE		4096
 #define PMM_BLOCK_ALIGN		BLOCK_SIZE
+// 인덱스 한 요소에 있는 bit 수
 #define PMM_BITS_PER_INDEX	32
 
 namespace PhysicalMemoryManager

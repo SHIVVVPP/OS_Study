@@ -19,12 +19,16 @@ namespace VirtualMemoryManager
 	{
 		SkyConsole::Print("Virtual Memory Manager Init..\n");
 
+		// MAX_PAGE_DIRECTORY 수 만큼 디렉토리를 할당 받는다.
 		for (int i = 0; i < MAX_PAGE_DIRECTORY_COUNT; i++)
 		{
 			g_pageDirectoryPool[i] = (PageDirectory*)PhysicalMemoryManager::AllocBlock();
 			g_pageDirectoryAvailable[i] = true;
 		}
 
+		// 페이징을 활성화한 이후에도 커널 역역을 동일하게 접근할 수 있도록
+		// 디렉토리의 페이지 테이블에서 8MB 영역은 물리주소와 가상주소가 같은 아이덴티티 매핑을 한다.
+		// 이후 모듈이 많아지면 페이지 테이블을 8MB 영역이 넘을 수 있다.
 		PageDirectory* dir = CreateCommonPageDirectory();
 
 		if (nullptr == dir)
@@ -33,7 +37,6 @@ namespace VirtualMemoryManager
 		// 페이지 디렉토리를 PDBR 레지스터에 로드한다.
 		SetCurPageDirectory(dir);
 		SetKernelPageDirectory(dir);
-
 		SetPageDirectory(dir);
 
 		// 페이징 기능을 다시 활성화 한다.
@@ -96,8 +99,7 @@ namespace VirtualMemoryManager
 			// 0번째 인덱스에 PDE를 세트한다.(가상주소가 0x00000000일시 참조됨)
 			// 앞에서 생성한 아이덴티티 페이지 테이블을 세팅한다.
 			// 가상주소 = 물리주소
-
-			PDE* identityEntry = &dir->m_entries[PAGE_DIRECTORY_INDEX((virt - 0x00400000))];
+			PDE* identityEntry = &dir->m_entries[PAGE_DIRECTORY_INDEX((virt - 0x00400000))]; // 0x400000 = 8MB
 			PageDirectoryEntry::AddAttribute(identityEntry, I86_PDE_PRESENT | I86_PDE_WRITABLE);
 			PageDirectoryEntry::SetFrame(identityEntry, (uint32_t)identityPageTable);
 		}
@@ -169,7 +171,7 @@ namespace VirtualMemoryManager
 			if (pde != 0)
 			{
 				/* get Mapped Frame*/
-				void* frame = (void*)(pageDir[i] & 0x7FFFF000);
+				void* frame = (void*)(pageDir[i] & I86_PDE_FRAME); // 01111111 11111111 11110000 00000000
 				PhysicalMemoryManager::FreeBlock(frame);
 				pde = 0;
 			}
@@ -221,7 +223,7 @@ namespace VirtualMemoryManager
 //			PAGE TABLE
 //=========================================================================
 #pragma region PAGE TABLE
-
+						// 페이지 디렉토리		가상 주소,		플래그
 	bool CreatePageTable(PageDirectory* dir, uint32_t virt, uint32_t flags)
 	{
 		PDE* pageDirectory = dir->m_entries;

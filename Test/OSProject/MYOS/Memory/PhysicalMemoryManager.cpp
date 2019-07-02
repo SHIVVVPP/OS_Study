@@ -13,7 +13,7 @@ namespace PhysicalMemoryManager
 	uint32_t m_maxBlocks = 0;
 
 	// 비트맵 배열, 각 비트는 메모리 블럭을 표현한다.
-	uint32_t*	m_pMemoryMap = 0;
+	uint32_t*	m_pMemoryMap = 0; // 메모리 맵의 시작 주소
 	uint32_t	m_memoryMapSize = 0;
 
 	//memorySize : 전체 메모리의 크기 (바이트 사이즈)
@@ -48,8 +48,11 @@ namespace PhysicalMemoryManager
 	{
 		uint64_t endAddress = 0;
 
+		//	bootinfo->mmap_length
+		//	mmap_버퍼는 multiboot_memory_map_t 구조체로 이루어져 있다.
+		//	mmapEntryNum은 multiboot_memory_map 구조체 배열의 원소 개수이다.
 		uint32_t mmapEntryNum = bootinfo->mmap_length / sizeof(multiboot_memory_map_t);
-
+		// bootinfo->mmap_addr은 주소
 		multiboot_mmap_entry* mmapAddr = (multiboot_mmap_entry*)bootinfo->mmap_addr;
 
 #ifdef _SKY_DEBUG
@@ -58,8 +61,8 @@ namespace PhysicalMemoryManager
 
 		for (uint32_t i = 0; i < mmapEntryNum; i++)
 		{
-			uint64_t areaStart = mmapAddr[i].addr;
-			uint64_t areaEnd = areaStart + mmapAddr[i].len;
+			uint64_t areaStart = mmapAddr[i].addr;	// 시작 주소
+			uint64_t areaEnd = areaStart + mmapAddr[i].len;	// 끝 주소
 
 			if (mmapAddr[i].type != 1)
 				continue;
@@ -76,8 +79,16 @@ namespace PhysicalMemoryManager
 
 	uint32_t GetKernelEnd(multiboot_info* bootinfo)
 	{
-		uint64_t endAddress = 0;
+		// 커널 구역이 끝나는 이후부터 메모리 비트맵 구역을 설정한다.
+		// GRUB로 PE 커널을 로드할 때는 커널 크기를 확인할 방법이 없다.
+		// 따라서 마지막에 로드된 모듈이 끝나는 주소로 활용한다.
+		// 즉, 커널의 크기는
+		//		마지막에 로드된 모듈이 끝나는 주소 - 0x100000이 된다.
+		// 순수 커널 자체의 크기는 최초로 로드되는 모듈이 시작되는 주소 - 0x100000이 될 것이다.
+		// 커널의 크기를 구하기 위해서는 모듈을 기준으로 구하므로 최소 하나 이상은 로드 되어야 한다.
+		uint64_t endAddress = 0; 
 		uint32_t mods_count = bootinfo->mods_count; /* Get the amount of modules available */
+		
 		uint32_t mods_addr = (uint32_t)bootinfo->Modules;
 		for (uint32_t i = 0; i < mods_count; i++)
 		{
@@ -95,46 +106,6 @@ namespace PhysicalMemoryManager
 		return (uint32_t)endAddress;
 	}
 
-	uint32_t FindFreeMemory(multiboot_info* info, uint32_t start, int count)
-	{
-		uint64_t location = start;
-
-		while (location < 0xFFFFFFFF)
-		{
-			bool notWithinModule = true;
-
-			for (int k = 0; k < count; k++)
-			{
-				uint32_t pos = location + k * PAGE_SIZE;
-
-				for (uint32_t i = 0; i < info->mods_count; i++)
-				{
-					Module* module = (Module*)(info->Modules + sizeof(module) * i);
-
-					uint32_t moduleStart = PAGE_ALIGN_DOWN((uint32_t)module->ModuleStart);
-					uint32_t moduleEnd = PAGE_ALIGN_UP((uint32_t)module->ModuleEnd);
-
-					SkyConsole::Print("0x%x 0x%x\n", (uint32_t)moduleStart, (uint32_t)moduleEnd);
-
-					if (pos >= moduleStart && pos < moduleEnd)
-					{
-						notWithinModule = false;
-						location = moduleEnd;
-						break;
-					}
-				}
-			}
-
-			if (notWithinModule)
-				return location;
-
-			location += PAGE_SIZE;
-		}
-
-		HaltSystem("could not find free memory chunk");
-		return 0;
-	}
-
 #pragma endregion
 
 
@@ -145,28 +116,37 @@ namespace PhysicalMemoryManager
 	{
 		SkyConsole::Print("Physical Memory Manager Init..\n");
 
-		g_totalMemorySize = GetTotalMemory(bootinfo);
+		// 초기 멤버 변수 세팅
 
+		// 메모리의 전체 크기를 알아낸다.
+		g_totalMemorySize = GetTotalMemory(bootinfo);
+		// 사용된 블록 수 (400KB 메모리가 사용중이라면, 사용된 블록의 수는 100개 이다.)
 		m_usedBlocks = 0;
+		// 자유 메모리 크기 128MB(기본 설정으로 정의)
 		m_memorySize = g_totalMemorySize;
+		// 사용할 수 있는 최대 블록 수 : 128MB/ 4KB(qemu에서 128MB로 설정) (블록 하나당 4KB를 나타내므로)
 		m_maxBlocks = m_memorySize / PMM_BLOCK_SIZE;
 
-		int pageCount = m_maxBlocks / PMM_BLOCKS_PER_BYTE / PAGE_SIZE;
+		// 페이지의 수.
+		// 하나의 페이지는 4KB
+		int pageCount =  m_maxBlocks / PMM_BLOCKS_PER_BYTE  / PAGE_SIZE;
 		if (pageCount == 0)
 			pageCount = 1;
 
 		m_pMemoryMap = (uint32_t*)GetKernelEnd(bootinfo);
 
 		// 1MB = 1048576 byte
-		SkyConsole::Print("Total Memory (%dMB)\n", g_totalMemorySize / 1048576);
-		SkyConsole::Print("BitMap Start Address(0x%x)\n", m_pMemoryMap);
+		SkyConsole::Print("Total Memory (%dMB)\n", g_totalMemorySize / 1048576); // 128MB
+		SkyConsole::Print("BitMap Start Address(0x%x)\n", m_pMemoryMap); 
 		SkyConsole::Print("BitMap Size(0x%x)\n", pageCount * PAGE_SIZE);
 
 		// 블럭들의 최대 수는 8의 배수로 맞추고 나머지는 버린다.
 		//m_maxBlocks = m_maxBlocks - (m_maxBlocks & PMM_BLOCKS_PER_BYTE);
 
 		// 메모리맵의 바이트크기
-		m_memoryMapSize = m_maxBlocks / PMM_BLOCKS_PER_BYTE;
+		// m_memoryMapSize = 비트맵 배열의 크기, 이 크기가 4KB라면 128MB의 메모리를 관리할 수 있다.
+		// 
+		m_memoryMapSize = m_maxBlocks / PMM_BLOCKS_PER_BYTE; 
 		m_usedBlocks = GetTotalBlockCount();
 
 		int tempMemoryMapSize = (GetMemoryMapSize() / 4096) * 4096;
@@ -176,6 +156,7 @@ namespace PhysicalMemoryManager
 		// 모든 메모리 블럭들이 사용중에 있다고 설정한다.
 		unsigned char flag = 0xff;
 		memset((char*)m_pMemoryMap, flag, m_memoryMapSize);
+		// 이용 가능한 메모리 블록을 설정한다.
 		SetAvailableMemory((uint32_t)m_pMemoryMap, m_memorySize);
 	}
 
@@ -242,13 +223,13 @@ namespace PhysicalMemoryManager
 	{
 		for (uint32_t i = 0; i < GetTotalBlockCount() / 32; i++)
 		{
-			if (m_pMemoryMap[i] != 0xffffffff)
+			if (m_pMemoryMap[i] != 0xffffffff) // i번째 메모리 맵이 모두 사용중이 아니라면
 			{
 				for (unsigned int j = 0; j < PMM_BITS_PER_INDEX; j++)
 				{
-					unsigned int bit = 1 << j;
-					if ((m_pMemoryMap[i] & bit) == 0)
-						return i * PMM_BITS_PER_INDEX + j;
+					unsigned int bit = 1 << j;	// 자리수 비트
+					if ((m_pMemoryMap[i] & bit) == 0)	// 해당 자리가 사용중이 아니라면
+						return i * PMM_BITS_PER_INDEX + j;	// 몇번째 블록인지 계산해 리턴한다.  i * m_pMemoryMap 한 요소당 블록 수 + j
 				}
 			}
 		}
@@ -258,7 +239,7 @@ namespace PhysicalMemoryManager
 	unsigned int GetFreeFrames(size_t size)
 	{
 		if (size == 0)
-			return 0xffffffff;
+			return 0xffffffff; // -1
 
 		if (size == 1)
 			return GetFreeFrame();
@@ -302,17 +283,22 @@ namespace PhysicalMemoryManager
 
 	void* AllocBlock()
 	{
+		// 이용할 수 있는 블록이 없다면 할당 실패
 		if (GetFreeBlockCount() <= 0)
 			return NULL;
 
+		// 사용되고 있지 않은 블록의 인덱스를 얻는다.
 		unsigned int frame = GetFreeFrame();
-
+		// 유효하지 않은 인덱스라면 NULL 리턴
 		if (frame == -1)
 			return NULL;
 
+		// 메모리 비트맵에 해당 블록이 사용되고 있음을 세트한다.
 		SetBit(frame);
 
+		// 할당된 물리 메모리 주소를 리턴한다.
 		uint32_t addr = frame * PMM_BLOCK_SIZE + (uint32_t)m_pMemoryMap;
+		// 사용된 블록수를 하나 증가시킨다.
 		m_usedBlocks++;
 
 		return (void*)addr;
@@ -331,6 +317,7 @@ namespace PhysicalMemoryManager
 
 	void* AllocBlocks(size_t size)
 	{
+		
 		if (GetFreeBlockCount() <= size)
 			return NULL;
 
