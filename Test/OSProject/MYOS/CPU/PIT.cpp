@@ -1,6 +1,6 @@
 #include "PIT.h"
 #include "HAL.h"
-#include "SkyConsole.h"
+#include "CYNConsole.h"
 
 /*
 PIT 컨트롤러는 1개의 컨트롤 레지스터와 3개의 카운터로 구성되며,
@@ -55,7 +55,7 @@ __declspec(naked) void InterruptPITHandler()
 	/*if (_pitTicks - _lastTickCount >= 100)
 	{
 		_lastTickCount = _pitTicks;
-		SkyConsole::Print("Timer Count : %d\n", _pitTicks);
+		CYNConsole::Print("Timer Count : %d\n", _pitTicks);
 	}*/
 
 	_pitTicks++;

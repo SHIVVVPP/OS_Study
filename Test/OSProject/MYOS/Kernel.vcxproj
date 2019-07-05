@@ -19,13 +19,16 @@
     <ClCompile Include="CPU\IDT.cpp" />
     <ClCompile Include="CPU\PIC.cpp" />
     <ClCompile Include="CPU\PIT.cpp" />
+    <ClCompile Include="Heap\HeapManager.cpp" />
+    <ClCompile Include="Heap\kheap.cpp" />
+    <ClCompile Include="Heap\ordered_array.cpp" />
     <ClCompile Include="Memory\PageDirectoryEntry.cpp" />
     <ClCompile Include="Memory\PageTableEntry.cpp" />
     <ClCompile Include="Memory\PhysicalMemoryManager.cpp" />
     <ClCompile Include="Memory\VirtualMemoryManager.cpp" />
-    <ClCompile Include="SkyAPI.cpp" />
+    <ClCompile Include="CYNAPI.cpp" />
     <ClCompile Include="kmain.cpp" />
-    <ClCompile Include="SkyConsole.cpp" />
+    <ClCompile Include="CYNConsole.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPU\InitKernel.h" />
@@ -36,15 +39,18 @@
     <ClInclude Include="CPU\IDT.h" />
     <ClInclude Include="CPU\PIC.h" />
     <ClInclude Include="CPU\PIT.h" />
+    <ClInclude Include="Heap\HeapManager.h" />
+    <ClInclude Include="Heap\kheap.h" />
+    <ClInclude Include="Heap\ordered_array.h" />
     <ClInclude Include="Memory\PageDirectoryEntry.h" />
     <ClInclude Include="Memory\PageTableEntry.h" />
     <ClInclude Include="Memory\PhysicalMemoryManager.h" />
-    <ClInclude Include="SkyOS.h" />
+    <ClInclude Include="CYNOS.h" />
     <ClInclude Include="Memory\VirtualMemoryManager.h" />
-    <ClInclude Include="SkyAPI.h" />
+    <ClInclude Include="CYNAPI.h" />
     <ClInclude Include="kmain.h" />
     <ClInclude Include="MultiBoot.h" />
-    <ClInclude Include="SkyConsole.h" />
+    <ClInclude Include="CYNConsole.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3EEB4C94-0534-40F5-BBF1-01C0C0AC5658}</ProjectGuid>
@@ -95,7 +101,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>./;../../CommonLib;../../Include;./CPU;./Memory;../../CommonLib/stl</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./;../../CommonLib;../../Include;./CPU;./Memory;./Heap;../../CommonLib/stl</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;ARCH_X86;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
       <StringPooling>

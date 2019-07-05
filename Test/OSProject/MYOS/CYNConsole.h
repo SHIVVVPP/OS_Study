@@ -1,5 +1,5 @@
-#ifndef SKYCONSOLE_H
-#define SKYCONSOLE_H
+#ifndef CYNCONSOLE_H
+#define CYNCONSOLE_H
 #include "windef.h"
 
 enum ConsoleColor
@@ -32,7 +32,7 @@ enum ConsoleColor
 #define VGA_CRT_CURSOR_H_LOCATION 0x0E
 #define VGA_CRT_CURSOR_L_LOCATION 0x0F
 
-namespace SkyConsole
+namespace CYNConsole
 {
 	void Initialize();
 	void Clear();

@@ -24,7 +24,6 @@
     <ClInclude Include="ctype.h" />
     <ClInclude Include="fileio.h" />
     <ClInclude Include="math.h" />
-    <ClInclude Include="SkyStruct.h" />
     <ClInclude Include="sprintf.h" />
     <ClInclude Include="stdio.h" />
     <ClInclude Include="string.h" />
@@ -122,6 +121,7 @@
     <ClInclude Include="CPlusPlus\signal.h">
       <Filter>CPlusPlus</Filter>
     </ClInclude>
+    <ClInclude Include="SkyStruct.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jsmn\jsmn.cpp">

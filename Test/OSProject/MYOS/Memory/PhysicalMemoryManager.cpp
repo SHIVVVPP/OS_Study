@@ -1,4 +1,4 @@
-#include "SkyOS.h"
+#include "CYNOS.h"
 #include "Exception.h"
 
 namespace PhysicalMemoryManager
@@ -33,7 +33,7 @@ namespace PhysicalMemoryManager
 	uint32_t GetUsedBlockCount()	{ return m_usedBlocks;							}
 	uint32_t GetFreeBlockCount()	{ return m_maxBlocks - m_usedBlocks;			}
 
-	uint32_t GetFreeMemory()		{ return GetFreeBlockCount() * PMM_BLOCK_SIZE;	}
+	uint32_t GetFreeMemory()		{ return GetFreeBlockCount() * PMM_BLOCK_SIZE; }
 	uint32_t GetBlockSize()			{ return PMM_BLOCK_SIZE;						}
 #pragma endregion
 
@@ -55,24 +55,29 @@ namespace PhysicalMemoryManager
 		// bootinfo->mmap_addr은 주소
 		multiboot_mmap_entry* mmapAddr = (multiboot_mmap_entry*)bootinfo->mmap_addr;
 
-#ifdef _SKY_DEBUG
-		SkyConsole::Print("Memory Map Entry Num : %d\n", mmapEntryNum);
+#ifdef _CYN_DEBUG
+		CYNConsole::Print("Memory Map Entry Num : %d\n", mmapEntryNum);
 #endif
 
 		for (uint32_t i = 0; i < mmapEntryNum; i++)
 		{
-			uint64_t areaStart = mmapAddr[i].addr;	// 시작 주소
-			uint64_t areaEnd = areaStart + mmapAddr[i].len;	// 끝 주소
+			uint64_t areaStart = mmapAddr[i].addr;
+			uint64_t areaEnd = areaStart + mmapAddr[i].len;
+
+			//CYNConsole::Print("0x%q 0x%q\n", areaStart, areaEnd);
 
 			if (mmapAddr[i].type != 1)
+			{
 				continue;
+			}
 
 			if (areaEnd > endAddress)
 				endAddress = areaEnd;
 		}
 
-		if (endAddress > 0xFFFFFFFF)
+		if (endAddress > 0xFFFFFFFF) {
 			endAddress = 0xFFFFFFFF;
+		}
 
 		return (uint32_t)endAddress;
 	}
@@ -86,21 +91,21 @@ namespace PhysicalMemoryManager
 		//		마지막에 로드된 모듈이 끝나는 주소 - 0x100000이 된다.
 		// 순수 커널 자체의 크기는 최초로 로드되는 모듈이 시작되는 주소 - 0x100000이 될 것이다.
 		// 커널의 크기를 구하기 위해서는 모듈을 기준으로 구하므로 최소 하나 이상은 로드 되어야 한다.
-		uint64_t endAddress = 0; 
-		uint32_t mods_count = bootinfo->mods_count; /* Get the amount of modules available */
-		
-		uint32_t mods_addr = (uint32_t)bootinfo->Modules;
-		for (uint32_t i = 0; i < mods_count; i++)
-		{
-			Module* module = (Module*)(mods_addr + (i * sizeof(Module)));
+		uint64_t endAddress = 0;
+		uint32_t mods_count = bootinfo->mods_count;   /* Get the amount of modules available */
+		uint32_t mods_addr = (uint32_t)bootinfo->Modules;     /* And the starting address of the modules */
+		for (uint32_t i = 0; i < mods_count; i++) {
+			Module* module = (Module*)(mods_addr + (i * sizeof(Module)));     /* Loop through all modules */
 
-			uint32_t moduleStart = PAGE_ALIGN_DOWN((uint32_t)module->ModuleStart);  // HAL.h PAGE_ALIGNE_DOWN, PAGE_ALIGN_UP 추가
+			uint32_t moduleStart = PAGE_ALIGN_DOWN((uint32_t)module->ModuleStart); // HAL.h 에 PAGE_ALIGNE_DOWN, PAGE_ALIGN_UP 추가
 			uint32_t moduleEnd = PAGE_ALIGN_UP((uint32_t)module->ModuleEnd);
 
 			if (endAddress < moduleEnd)
+			{
 				endAddress = moduleEnd;
+			}
 
-			SkyConsole::Print("%x %x\n", moduleStart, moduleEnd);
+			CYNConsole::Print("%x %x\n", moduleStart, moduleEnd);
 		}
 
 		return (uint32_t)endAddress;
@@ -114,11 +119,8 @@ namespace PhysicalMemoryManager
 //==========================================================
 	void Initialize(multiboot_info* bootinfo)
 	{
-		SkyConsole::Print("Physical Memory Manager Init..\n");
-
+		CYNConsole::Print("Physical Memory Manager Init..\n");
 		// 초기 멤버 변수 세팅
-
-		// 메모리의 전체 크기를 알아낸다.
 		g_totalMemorySize = GetTotalMemory(bootinfo);
 		// 사용된 블록 수 (400KB 메모리가 사용중이라면, 사용된 블록의 수는 100개 이다.)
 		m_usedBlocks = 0;
@@ -129,34 +131,36 @@ namespace PhysicalMemoryManager
 
 		// 페이지의 수.
 		// 하나의 페이지는 4KB
-		int pageCount =  m_maxBlocks / PMM_BLOCKS_PER_BYTE  / PAGE_SIZE;
+		int pageCount = m_maxBlocks / PMM_BLOCKS_PER_BYTE / PAGE_SIZE;
 		if (pageCount == 0)
 			pageCount = 1;
 
 		m_pMemoryMap = (uint32_t*)GetKernelEnd(bootinfo);
 
 		// 1MB = 1048576 byte
-		SkyConsole::Print("Total Memory (%dMB)\n", g_totalMemorySize / 1048576); // 128MB
-		SkyConsole::Print("BitMap Start Address(0x%x)\n", m_pMemoryMap); 
-		SkyConsole::Print("BitMap Size(0x%x)\n", pageCount * PAGE_SIZE);
+		CYNConsole::Print("Total Memory (%dMB)\n", g_totalMemorySize / 1048576);
+		CYNConsole::Print("BitMap Start Address(0x%x)\n", m_pMemoryMap);
+		CYNConsole::Print("BitMap Size(0x%x)\n", pageCount * PAGE_SIZE);
 
-		// 블럭들의 최대 수는 8의 배수로 맞추고 나머지는 버린다.
-		//m_maxBlocks = m_maxBlocks - (m_maxBlocks & PMM_BLOCKS_PER_BYTE);
+		//블럭들의 최대 수는 8의 배수로 맞추고 나머지는 버린다
+		//m_maxBlocks = m_maxBlocks - (m_maxBlocks % PMM_BLOCKS_PER_BYTE);
 
 		// 메모리맵의 바이트크기
 		// m_memoryMapSize = 비트맵 배열의 크기, 이 크기가 4KB라면 128MB의 메모리를 관리할 수 있다.
-		// 
-		m_memoryMapSize = m_maxBlocks / PMM_BLOCKS_PER_BYTE; 
+		m_memoryMapSize = m_maxBlocks / PMM_BLOCKS_PER_BYTE;
 		m_usedBlocks = GetTotalBlockCount();
 
 		int tempMemoryMapSize = (GetMemoryMapSize() / 4096) * 4096;
 
+		if (GetMemoryMapSize() % 4096 > 0)
+			tempMemoryMapSize += 4096;
+
 		m_memoryMapSize = tempMemoryMapSize;
 
-		// 모든 메모리 블럭들이 사용중에 있다고 설정한다.
+		//모든 메모리 블럭들이 사용중에 있다고 설정한다.	
 		unsigned char flag = 0xff;
 		memset((char*)m_pMemoryMap, flag, m_memoryMapSize);
-		// 이용 가능한 메모리 블록을 설정한다.
+		//// 이용 가능한 메모리 블록을 설정한다.
 		SetAvailableMemory((uint32_t)m_pMemoryMap, m_memorySize);
 	}
 
@@ -165,7 +169,7 @@ namespace PhysicalMemoryManager
 		int usedBlock = GetMemoryMapSize() / PMM_BLOCK_SIZE;
 		int blocks = GetTotalBlockCount();
 
-		for (int i = usedBlock; i < blocks; i++)
+		for (int i = usedBlock; i < blocks; i++) 
 		{
 			UnsetBit(i);
 			m_usedBlocks--;
@@ -177,7 +181,7 @@ namespace PhysicalMemoryManager
 		int align = base / PMM_BLOCK_SIZE;
 		int blocks = size / PMM_BLOCK_SIZE;
 
-		for (; blocks > 0; blocks--)
+		for (; blocks > 0; blocks--) 
 		{
 			SetBit(align++);
 			m_usedBlocks++;
@@ -211,7 +215,7 @@ namespace PhysicalMemoryManager
 	// 비트가 유효값을 벗어나면 0을 리턴한다.
 	bool TestMemoryMap(int bit)
 	{
-		return (m_pMemoryMap[bit / 32] & (1 << (bit & 32))) > 0;
+		return (m_pMemoryMap[bit / 32] & (1 << (bit % 32))) > 0;
 	}
 
 	
@@ -223,26 +227,28 @@ namespace PhysicalMemoryManager
 	{
 		for (uint32_t i = 0; i < GetTotalBlockCount() / 32; i++)
 		{
-			if (m_pMemoryMap[i] != 0xffffffff) // i번째 메모리 맵이 모두 사용중이 아니라면
-			{
+			if (m_pMemoryMap[i] != 0xffffffff)		// i 번째 메모리 맵이 모두 사용중인지 체크
 				for (unsigned int j = 0; j < PMM_BITS_PER_INDEX; j++)
 				{
 					unsigned int bit = 1 << j;	// 자리수 비트
 					if ((m_pMemoryMap[i] & bit) == 0)	// 해당 자리가 사용중이 아니라면
-						return i * PMM_BITS_PER_INDEX + j;	// 몇번째 블록인지 계산해 리턴한다.  i * m_pMemoryMap 한 요소당 블록 수 + j
+						return i * PMM_BITS_PER_INDEX + j;	// 몇번째 블록인지 계산해 리턴한다. i * m_pMemoryMap 한 요소당 블록 수 + j
 				}
-			}
 		}
+
+		return 0xffffffff;
 	}
 	   
 	// 연속된 빈 프레임(블럭)들을 얻어낸다.
 	unsigned int GetFreeFrames(size_t size)
 	{
 		if (size == 0)
-			return 0xffffffff; // -1
+			return 0xffffffff;
 
 		if (size == 1)
 			return GetFreeFrame();
+
+
 
 		for (uint32_t i = 0; i < GetTotalBlockCount() / 32; i++)
 		{
@@ -253,14 +259,15 @@ namespace PhysicalMemoryManager
 					unsigned int bit = 1 << j;
 					if ((m_pMemoryMap[i] & bit) == 0)
 					{
+
 						unsigned int startingBit = i * PMM_BITS_PER_INDEX + j;
 
-						// 연속된 빈 프레임의 개수를 증가시킨다.
+						// 연속된 빈 프레임의 갯수를 증가시킨다.
 
 						uint32_t free = 0;
 						for (uint32_t count = 0; count < size; count++)
 						{
-							// 메모리 맵을 벗어나는 상황
+							//메모리맵을 벗어나는 상황
 							if (startingBit + count >= m_maxBlocks)
 								return 0xffffffff;
 
@@ -269,8 +276,8 @@ namespace PhysicalMemoryManager
 							else
 								break;
 
-							// 연속된 빈 프레임이 존재한다. 시작 비트 인덱스는 startingBit
-							if (free = size)
+							//연속된 빈 프레임들이 존재한다. 시작 비트 인덱스는 startingBit
+							if (free == size)
 								return startingBit;
 						}
 					}
@@ -286,19 +293,18 @@ namespace PhysicalMemoryManager
 		// 이용할 수 있는 블록이 없다면 할당 실패
 		if (GetFreeBlockCount() <= 0)
 			return NULL;
-
 		// 사용되고 있지 않은 블록의 인덱스를 얻는다.
 		unsigned int frame = GetFreeFrame();
-		// 유효하지 않은 인덱스라면 NULL 리턴
+
+		// GetFreeFrame에서 유효한 프레임이 없다면 -1을 리턴하므로 예외처리
 		if (frame == -1)
 			return NULL;
 
-		// 메모리 비트맵에 해당 블록이 사용되고 있음을 세트한다.
+		// 메모리 비트맵에 해당 블록이 사용되고 있음을 세팅한다.
 		SetBit(frame);
 
 		// 할당된 물리 메모리 주소를 리턴한다.
 		uint32_t addr = frame * PMM_BLOCK_SIZE + (uint32_t)m_pMemoryMap;
-		// 사용된 블록수를 하나 증가시킨다.
 		m_usedBlocks++;
 
 		return (void*)addr;
@@ -319,12 +325,17 @@ namespace PhysicalMemoryManager
 	{
 		
 		if (GetFreeBlockCount() <= size)
+		{
 			return NULL;
+		}
+
 
 		int frame = GetFreeFrames(size);
 
 		if (frame == -1)
-			return NULL;
+		{
+			return NULL;	//연속된 빈 블럭들이 존재하지 않는다.
+		}
 
 		for (uint32_t i = 0; i < size; i++)
 			SetBit(frame + i);
@@ -355,21 +366,18 @@ namespace PhysicalMemoryManager
 #ifdef _MSC_VER
 		_asm
 		{
-			mov eax, cr0
+			mov	eax, cr0
 			cmp[state], 1
-			je enable
+			je	enable
 			jmp disable
-			
-		enable:
-			or eax, 0x80000000 // set bit 31
-			mov cr0, eax
+			enable :
+			or eax, 0x80000000		//set bit 31
+			mov	cr0, eax
 			jmp done
-			
-		disable:
-			and eax, 0x7FFFFFFF // Clear bit 31
-			mov cr0, eax
-			
-		done:
+			disable :
+			and eax, 0x7FFFFFFF		//clear bit 31
+				mov	cr0, eax
+				done :
 		}
 #endif
 	}
@@ -377,15 +385,15 @@ namespace PhysicalMemoryManager
 	bool IsPaging()
 	{
 		uint32_t res = 0;
+
 #ifdef _MSC_VER
-		_asm 
-		{
-			mov eax, cr0
+		_asm {
+			mov	eax, cr0
 			mov[res], eax
 		}
 #endif
 		// 8000 0000 = 10000000 00000000 00000000 00000000
-		return (res & 0x800000000) ? false : true;
+		return (res & 0x80000000) ? false : true;
 	}
 
 	void LoadPDBR(uint32_t physicalAddr)
@@ -412,11 +420,12 @@ namespace PhysicalMemoryManager
 
 	void Dump()
 	{
-		SkyConsole::Print("Memory Size : 0x%x\n", m_memorySize);
-		SkyConsole::Print("Memory Map Address : 0x%x\n", m_pMemoryMap);
-		SkyConsole::Print("Memory Map Size : %d bytes\n", m_memoryMapSize);
-		SkyConsole::Print("Max Block Count : %d\n", m_maxBlocks);
-		SkyConsole::Print("Used Block Count : %d\n", m_usedBlocks);
+		CYNConsole::Print("Memory Size : 0x%x\n", m_memorySize);
+		CYNConsole::Print("Memory Map Address : 0x%x\n", m_pMemoryMap);
+		CYNConsole::Print("Memory Map Size : %d bytes\n", m_memoryMapSize);
+		CYNConsole::Print("Max Block Count : %d\n", m_maxBlocks);
+
+		CYNConsole::Print("Used Block Count : %d\n", m_usedBlocks);
 	}
 
 }

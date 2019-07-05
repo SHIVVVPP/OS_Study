@@ -2,9 +2,9 @@
 #include "PhysicalMemoryManager.h"
 #include "string.h"
 #include "memory.h"
-#include "SkyConsole.h"
+#include "CYNConsole.h"
 #include "MultiBoot.h"
-#include "SkyAPI.h"
+#include "CYNAPI.h"
 
 PageDirectory* g_pageDirectoryPool[MAX_PAGE_DIRECTORY_COUNT];
 bool g_pageDirectoryAvailable[MAX_PAGE_DIRECTORY_COUNT];
@@ -17,7 +17,7 @@ namespace VirtualMemoryManager
 
 	bool Initialize()
 	{
-		SkyConsole::Print("Virtual Memory Manager Init..\n");
+		CYNConsole::Print("Virtual Memory Manager Init..\n");
 
 		// MAX_PAGE_DIRECTORY 수 만큼 디렉토리를 할당 받는다.
 		for (int i = 0; i < MAX_PAGE_DIRECTORY_COUNT; i++)
@@ -317,7 +317,7 @@ namespace VirtualMemoryManager
 	void MapPhysicalAddressToVirtualAddress(PageDirectory* dir, uint32_t virt, uint32_t phys, uint32_t flags)
 	{
 
-		//SkyAPI에 추가
+		//CYNAPI에 추가
 		kEnterCriticalSection();
 		PhysicalMemoryManager::EnablePaging(false);
 

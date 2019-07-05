@@ -1,4 +1,4 @@
-﻿#include "SkyConsole.h"
+﻿#include "CYNConsole.h"
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
@@ -7,7 +7,7 @@
 
 extern void OutPortByte(ushort port, uchar value);
 
-namespace SkyConsole
+namespace CYNConsole
 {
 	static ConsoleColor m_Color;
 	static ConsoleColor m_Text;

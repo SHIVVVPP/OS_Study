@@ -1,6 +1,7 @@
 ﻿#include "kmain.h"
 #include "PhysicalMemoryManager.h"
 #include "VirtualMemoryManager.h"
+#include "HeapManager.h"
 #include "Exception.h"
 #include "FPU.h"
 
@@ -82,7 +83,7 @@ void TestFPU()
 {
 	float sampleFloat = 0.3f;
 	sampleFloat *= 5.482f;
-	SkyConsole::Print("Sample Float Value %f\n", sampleFloat);
+	CYNConsole::Print("Sample Float Value %f\n", sampleFloat);
 }
 
 int _divider = 0;
@@ -94,7 +95,7 @@ void TestInterrupt()
 	if (_divider != 0)
 		result = _dividend / _divider;
 
-	SkyConsole::Print("Result is %d, divider : %d\n", result, _divider);
+	CYNConsole::Print("Result is %d, divider : %d\n", result, _divider);
 }
 
 // 위 multiboot_entry에서 ebx eax에 푸쉬한 멀티 부트 구조체 포인터(->addr), 매직넘버(->magic)로 호출
@@ -106,40 +107,55 @@ void kmain(unsigned long magic, unsigned long addr)
 	multiboot_info* pBootInfo = (multiboot_info*)addr;
 	//-
 
-	SkyConsole::Initialize();
+	CYNConsole::Initialize();
 
 	//add
 	//헥사를 표시할 때 %X는 integer, %x는 unsigned integer의 헥사값을 표시한다.
-	SkyConsole::Print("*** MY OS Console System Init ***\n");
+	CYNConsole::Print("*** MY OS Console System Init ***\n");
 
-	SkyConsole::Print("GRUB Information\n");
-	SkyConsole::Print("Boot Loader Name : %s\n", (char*)pBootInfo->boot_loader_name);
+	CYNConsole::Print("GRUB Information\n");
+	CYNConsole::Print("Boot Loader Name : %s\n", (char*)pBootInfo->boot_loader_name);
 	//-
 
 	// 하드웨어 초기화 과정중 인터럽트가 발생하지 않아야 하므로
 	kEnterCriticalSection();
 
 	HardwareInitialize();
-	SkyConsole::Print("Hardware Init Complete\n");
+	CYNConsole::Print("Hardware Init Complete\n");
 	
 	SetInterruptVector();
-	SkyConsole::Print("Interrupt Handler Init Complete\n");
+	CYNConsole::Print("Interrupt Handler Init Complete\n");
 
 	
 	if (false == InitFPU())
 	{
-		SkyConsole::Print("[Warning] Floating Pointer Unit(FPU) Detection Fail!\n");
+		CYNConsole::Print("[Warning] Floating Pointer Unit(FPU) Detection Fail!\n");
 	}
 	else
 	{
 		EnableFPU();
-		SkyConsole::Print("FPU Init...\n");
+		CYNConsole::Print("FPU Init...\n");
 		//TestFPU();
 	}
 
 	// 물리/ 가상 메모리 매니저 초기화
 	InitMemoryManager(pBootInfo);
-	SkyConsole::Print("Memory Manager Init Complete\n");
+	CYNConsole::Print("Memory Manager Init Complete\n");
+
+	// 힙 초기화
+	int heapFrameCount = 256 * 10 * 5; // 프레임 수 12800개, 52MB
+	unsigned int requireHeapSize = heapFrameCount * PAGE_SIZE;
+
+	// 요구되는 힙의 크기가 자유공간보다 크다면 그 크기를 자유공간 크기로 맞춘다음 반으로 줄인다.
+	uint32_t memorySize = PhysicalMemoryManager::GetMemorySize();
+	if (requireHeapSize > memorySize)
+	{
+		requireHeapSize = memorySize / 2;
+		heapFrameCount = requireHeapSize / PAGE_SIZE / 2;
+	}
+
+	HeapManager::InitKernelHeap(heapFrameCount);
+	CYNConsole::Print("Heap %dMB Allocated\n", requireHeapSize / 1048576); // 1MB = 1048576byte
 
 
 	kLeaveCriticalSection();
@@ -165,17 +181,17 @@ bool InitMemoryManager(multiboot_info* pBootInfo)
 {
 	// 물리/가상 메모리 매니저를 초기화한다.
 	// 기본 설정 시스템 메모리는 128MB
-	SkyConsole::Print("Memory Manager Init Complete\n");
+	CYNConsole::Print("Memory Manager Init Complete\n");
 
 	PhysicalMemoryManager::EnablePaging(false);
 
 	//물리 메모리 매니저 초기화
 	PhysicalMemoryManager::Initialize(pBootInfo);
+	//PhysicalMemoryManager::Dump();
 
 	//가상 메모리 매니저 초기화
-	VirtualMemoryManager::Initialize();
-
-	PhysicalMemoryManager::Dump();
+	VirtualMemoryManager::Initialize(); 
+	//PhysicalMemoryManager::Dump();
 	return true;
 }
 

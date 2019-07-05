@@ -1,7 +1,7 @@
 #include "Exception.h"
 #include "HAL.h" // interrupt(declspec(naked)) ¿Í register_t Á¤ÀÇ
 #include <stdint.h>
-#include "SkyConsole.h"
+#include "CYNConsole.h"
 #include "sprintf.h"
 #include "string.h"
 
@@ -20,20 +20,20 @@ We are sorry for the inconvenience this might have caused.\n\n\
 Please report the following information and restart your computer\n\
 The system has been halted.\n\n";
 
-	SkyConsole::MoveCursor(0, 0);
-	SkyConsole::SetColor(ConsoleColor::White, ConsoleColor::Blue, false);
-	SkyConsole::Clear();
-	SkyConsole::Print(sickpc);
-	SkyConsole::Print(disclamer);
+	CYNConsole::MoveCursor(0, 0);
+	CYNConsole::SetColor(ConsoleColor::White, ConsoleColor::Blue, false);
+	CYNConsole::Clear();
+	CYNConsole::Print(sickpc);
+	CYNConsole::Print(disclamer);
 }
 
 
 void HandleDivideByZero(registers_t regs)
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Divide by 0 at Address[0x%x:0x%x]\n", regs.cs, regs.eip);
-	SkyConsole::Print("EFLAGS[0x%x]\n", regs.eflags);
-	SkyConsole::Print("ss : 0x%x\n", regs.ss);
+	CYNConsole::Print("Divide by 0 at Address[0x%x:0x%x]\n", regs.cs, regs.eip);
+	CYNConsole::Print("EFLAGS[0x%x]\n", regs.eflags);
+	CYNConsole::Print("ss : 0x%x\n", regs.ss);
 	for (;;);
 }
 
@@ -79,130 +79,130 @@ interrupt void kHandleDivideByZero()
 interrupt void kHandleSingleStepTrap()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Single step\n");
+	CYNConsole::Print("Single step\n");
 	for (;;);
 }
 
 interrupt void kHandleNMITrap()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("NMI trap\n");
+	CYNConsole::Print("NMI trap\n");
 	for (;;);
 }
 
 interrupt void kHandleBreakPointTrap()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Breakpoint trap\n");
+	CYNConsole::Print("Breakpoint trap\n");
 	for (;;);
 }
 
 interrupt void kHandleOverflowTrap()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Overflow trap");
+	CYNConsole::Print("Overflow trap");
 	for (;;);
 }
 
 interrupt void kHandleBoundsCheckFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Bounds check fault\n");
+	CYNConsole::Print("Bounds check fault\n");
 	for (;;);
 }
 
 interrupt void kHandleInvalidOpcodeFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Invalid opcode");
+	CYNConsole::Print("Invalid opcode");
 	for (;;);
 }
 
 interrupt void kHandleNoDeviceFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Device not found\n");
+	CYNConsole::Print("Device not found\n");
 	for (;;);
 }
 
 interrupt void kHandleDoubleFaultAbort()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Double fault\n");
+	CYNConsole::Print("Double fault\n");
 	for (;;);
 }
 
 interrupt void kHandleInvalidTSSFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Invalid TSS\n");
+	CYNConsole::Print("Invalid TSS\n");
 	for (;;);
 }
 
 interrupt void kHandleSegmentFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Invalid segment\n");
+	CYNConsole::Print("Invalid segment\n");
 	for (;;);
 }
 
 interrupt void kHandleStackFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Stack fault\n");
+	CYNConsole::Print("Stack fault\n");
 	for (;;);
 }
 
 interrupt void kHandleGeneralProtectionFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("General Protection Fault\n");
+	CYNConsole::Print("General Protection Fault\n");
 	for (;;);
 }
 
 interrupt void kHandlePageFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Page Fault\n");
+	CYNConsole::Print("Page Fault\n");
 	for (;;);
 }
 
 interrupt void kHandleFPUFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Alignment Check\n");
+	CYNConsole::Print("Alignment Check\n");
 	for (;;);
 }
 
 interrupt void kHandleAlignedCheckFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Alignment Check\n");
+	CYNConsole::Print("Alignment Check\n");
 	for (;;);
 }
 
 interrupt void kHandleMachineCheckAbort()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("Machine Check\n");
+	CYNConsole::Print("Machine Check\n");
 	for (;;);
 }
 
 interrupt void kHandleSIMDFPUFault()
 {
 	kExceptionMessageHeader();
-	SkyConsole::Print("FPU SIMD fault\n");
+	CYNConsole::Print("FPU SIMD fault\n");
 	for (;;);
 }
 
 void HaltSystem(const char* errMsg)
 {
-	SkyConsole::MoveCursor(0, 0);
-	SkyConsole::SetColor(ConsoleColor::White, ConsoleColor::Blue, false);
-	SkyConsole::Clear();
-	SkyConsole::Print(sickpc);
+	CYNConsole::MoveCursor(0, 0);
+	CYNConsole::SetColor(ConsoleColor::White, ConsoleColor::Blue, false);
+	CYNConsole::Clear();
+	CYNConsole::Print(sickpc);
 
-	SkyConsole::Print("*** STOP: %s", errMsg);
+	CYNConsole::Print("*** STOP: %s", errMsg);
 
 	__asm
 	{

@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="kmain.cpp" />
-    <ClCompile Include="SkyConsole.cpp" />
     <ClCompile Include="CPU\IDT.cpp">
       <Filter>CPU</Filter>
     </ClCompile>
@@ -12,7 +11,6 @@
     <ClCompile Include="CPU\PIC.cpp" />
     <ClCompile Include="CPU\HAL.cpp" />
     <ClCompile Include="CPU\PIT.cpp" />
-    <ClCompile Include="SkyAPI.cpp" />
     <ClCompile Include="CPU\FPU.cpp" />
     <ClCompile Include="Exception.cpp" />
     <ClCompile Include="CPU\InitKernel.cpp" />
@@ -20,10 +18,14 @@
     <ClCompile Include="Memory\PageTableEntry.cpp" />
     <ClCompile Include="Memory\PhysicalMemoryManager.cpp" />
     <ClCompile Include="Memory\VirtualMemoryManager.cpp" />
+    <ClCompile Include="CYNAPI.cpp" />
+    <ClCompile Include="CYNConsole.cpp" />
+    <ClCompile Include="Heap\ordered_array.cpp" />
+    <ClCompile Include="Heap\kheap.cpp" />
+    <ClCompile Include="Heap\HeapManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kmain.h" />
-    <ClInclude Include="SkyConsole.h" />
     <ClInclude Include="MultiBoot.h" />
     <ClInclude Include="CPU\IDT.h">
       <Filter>CPU</Filter>
@@ -34,7 +36,6 @@
     <ClInclude Include="CPU\PIC.h" />
     <ClInclude Include="CPU\HAL.h" />
     <ClInclude Include="CPU\PIT.h" />
-    <ClInclude Include="SkyAPI.h" />
     <ClInclude Include="CPU\FPU.h" />
     <ClInclude Include="Exception.h" />
     <ClInclude Include="CPU\InitKernel.h" />
@@ -42,7 +43,12 @@
     <ClInclude Include="Memory\PageTableEntry.h" />
     <ClInclude Include="Memory\PhysicalMemoryManager.h" />
     <ClInclude Include="Memory\VirtualMemoryManager.h" />
-    <ClInclude Include="SkyOS.h" />
+    <ClInclude Include="CYNConsole.h" />
+    <ClInclude Include="CYNAPI.h" />
+    <ClInclude Include="CYNOS.h" />
+    <ClInclude Include="Heap\ordered_array.h" />
+    <ClInclude Include="Heap\kheap.h" />
+    <ClInclude Include="Heap\HeapManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CPU">

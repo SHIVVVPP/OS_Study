@@ -1,7 +1,0 @@
-#include "SkyAPI.h"
-#include "SkyConsole.h"
-#include "Hal.h"
-#include "string.h"
-#include "va_list.h"
-#include "stdarg.h"
-#include "sprintf.h"
