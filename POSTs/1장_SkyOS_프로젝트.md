@@ -1,7 +1,3 @@
-
-
-![Image](https://i.imgur.com/oCtWyvK.png)
-
 # 1장 SkyOS 프로젝트
 
 

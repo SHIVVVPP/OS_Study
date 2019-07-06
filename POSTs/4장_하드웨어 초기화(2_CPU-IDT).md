@@ -1,7 +1,5 @@
 # 4장 하드웨어 초기화 (CPU-IDT)
 
-![Image](https://i.imgur.com/oCtWyvK.png)
-
 ## IDT(*Interrput Descriptor Table*)
 
 IDT는 소프트웨어 예외가 발생하거나 하드웨어 인터럽트가 발생할 때,<br>이를 처리하기 위한 서비스 루틴을 기술한 디스크립터의 모음 테이블이다.

@@ -12,7 +12,7 @@
 // 1바이트당 블록 수 (1비트가 하나의 블록을 나타낸다.)
 #define PMM_BLOCKS_PER_BYTE	8	
 // 블록 하나당 메모리 할당 크기 4KB(4 * 1024 Byte)
-#define PMM_BLOCK_SIZE		4096
+#define PMM_MEMORY_PER_BLOCKS		4096
 #define PMM_BLOCK_ALIGN		BLOCK_SIZE
 // 인덱스 한 요소에 있는 bit 수
 #define PMM_BITS_PER_INDEX	32
@@ -46,6 +46,9 @@ namespace PhysicalMemoryManager
 
 	// MEMORY BITMAP
 		// 페이지, 블록, 프레임은 모두 같은 의미이다.
+		// 페이지는 주로 가상 주소에서 쓰이고, 프레임은 물리주소에서 쓰인다.
+		// 우리가 만드는 운영체제 에서는 페이지(4K) 프레임(4K)로,
+		// 하나의 페이지, 프레임이 동일한 메모리 크기를 나타낸다.
 		// 프레임들을 Set하거나 Unset한다.
 	void SetBit(int bit);
 	void UnsetBit(int bit);

@@ -33,8 +33,8 @@ namespace PhysicalMemoryManager
 	uint32_t GetUsedBlockCount()	{ return m_usedBlocks;							}
 	uint32_t GetFreeBlockCount()	{ return m_maxBlocks - m_usedBlocks;			}
 
-	uint32_t GetFreeMemory()		{ return GetFreeBlockCount() * PMM_BLOCK_SIZE; }
-	uint32_t GetBlockSize()			{ return PMM_BLOCK_SIZE;						}
+	uint32_t GetFreeMemory()		{ return GetFreeBlockCount() * PMM_MEMORY_PER_BLOCKS; }
+	uint32_t GetBlockSize()			{ return PMM_MEMORY_PER_BLOCKS;						}
 #pragma endregion
 
 
@@ -127,10 +127,12 @@ namespace PhysicalMemoryManager
 		// 자유 메모리 크기 128MB(기본 설정으로 정의)
 		m_memorySize = g_totalMemorySize;
 		// 사용할 수 있는 최대 블록 수 : 128MB/ 4KB(qemu에서 128MB로 설정) (블록 하나당 4KB를 나타내므로)
-		m_maxBlocks = m_memorySize / PMM_BLOCK_SIZE;
+		m_maxBlocks = m_memorySize / PMM_MEMORY_PER_BLOCKS;
 
 		// 페이지의 수.
 		// 하나의 페이지는 4KB
+		// maxBlocks(블록의 총 수) / PMM_BLOCKS_PER_BYTE(블록 하나당 바이트) / 페이지 하나의 크기
+		// 블록들이 차지하는 페이지 수 = 메모리 맵을 할당하기 위해 필요한 페이지 수
 		int pageCount = m_maxBlocks / PMM_BLOCKS_PER_BYTE / PAGE_SIZE;
 		if (pageCount == 0)
 			pageCount = 1;
@@ -140,6 +142,7 @@ namespace PhysicalMemoryManager
 		// 1MB = 1048576 byte
 		CYNConsole::Print("Total Memory (%dMB)\n", g_totalMemorySize / 1048576);
 		CYNConsole::Print("BitMap Start Address(0x%x)\n", m_pMemoryMap);
+		CYNConsole::Print("Page Count (%d)\n", pageCount);
 		CYNConsole::Print("BitMap Size(0x%x)\n", pageCount * PAGE_SIZE);
 
 		//블럭들의 최대 수는 8의 배수로 맞추고 나머지는 버린다
@@ -150,9 +153,12 @@ namespace PhysicalMemoryManager
 		m_memoryMapSize = m_maxBlocks / PMM_BLOCKS_PER_BYTE;
 		m_usedBlocks = GetTotalBlockCount();
 
+		// 메모리 맵으 크기
 		int tempMemoryMapSize = (GetMemoryMapSize() / 4096) * 4096;
 
-		if (GetMemoryMapSize() % 4096 > 0)
+		// 메모리 맵의 크기는 블록 단위로 정해져야 한다.
+		// PMM_MEMORY_PER_BLOCK = 4096이기 때문에 4096 단위로 크기가 정해져야 한다.
+		if (GetMemoryMapSize() % 4096> 0) 
 			tempMemoryMapSize += 4096;
 
 		m_memoryMapSize = tempMemoryMapSize;
@@ -164,11 +170,15 @@ namespace PhysicalMemoryManager
 		SetAvailableMemory((uint32_t)m_pMemoryMap, m_memorySize);
 	}
 
+	// 메모리 들의 사용 여부를 설정한다.
 	void SetAvailableMemory(uint32_t base, size_t size)
 	{
-		int usedBlock = GetMemoryMapSize() / PMM_BLOCK_SIZE;
+		// 여기서 메모리 맵이 메모리를 사용하고 있기 때문에
+		// 메모리 맵에서 사용되는 블록 수 만큼의 메모리는  사용되고 있다고 처리한다.
+		int usedBlock = GetMemoryMapSize() / PMM_MEMORY_PER_BLOCKS;
 		int blocks = GetTotalBlockCount();
 
+		// (KernelEndAddress 부터 사용되기 때문에 초기 i를 usedBlock으로 설정)
 		for (int i = usedBlock; i < blocks; i++) 
 		{
 			UnsetBit(i);
@@ -178,8 +188,8 @@ namespace PhysicalMemoryManager
 
 	void SetDeAvailableMemory(uint32_t base, size_t size)
 	{
-		int align = base / PMM_BLOCK_SIZE;
-		int blocks = size / PMM_BLOCK_SIZE;
+		int align = base / PMM_MEMORY_PER_BLOCKS;
+		int blocks = size / PMM_MEMORY_PER_BLOCKS;
 
 		for (; blocks > 0; blocks--) 
 		{
@@ -304,7 +314,7 @@ namespace PhysicalMemoryManager
 		SetBit(frame);
 
 		// 할당된 물리 메모리 주소를 리턴한다.
-		uint32_t addr = frame * PMM_BLOCK_SIZE + (uint32_t)m_pMemoryMap;
+		uint32_t addr = frame * PMM_MEMORY_PER_BLOCKS + (uint32_t)m_pMemoryMap;
 		m_usedBlocks++;
 
 		return (void*)addr;
@@ -313,7 +323,7 @@ namespace PhysicalMemoryManager
 	void FreeBlock(void* p)
 	{
 		uint32_t addr = (uint32_t)p;
-		int frame = addr / PMM_BLOCK_SIZE;
+		int frame = addr / PMM_MEMORY_PER_BLOCKS;
 
 		UnsetBit(frame);
 
@@ -340,7 +350,7 @@ namespace PhysicalMemoryManager
 		for (uint32_t i = 0; i < size; i++)
 			SetBit(frame + i);
 
-		uint32_t addr = frame * PMM_BLOCK_SIZE + (uint32_t)m_pMemoryMap;
+		uint32_t addr = frame * PMM_MEMORY_PER_BLOCKS + (uint32_t)m_pMemoryMap;
 		m_usedBlocks += size;
 
 		return (void*)addr;
@@ -350,7 +360,7 @@ namespace PhysicalMemoryManager
 	void FreeBlocks(void* p, size_t size)
 	{
 		uint32_t addr = (uint32_t)p - (uint32_t)m_pMemoryMap;
-		int frame = addr / PMM_BLOCK_SIZE;
+		int frame = addr / PMM_MEMORY_PER_BLOCKS;
 
 		for (uint32_t i = 0; i < size; i++)
 			UnsetBit(frame + i);

@@ -68,15 +68,17 @@ void free(void* p, heap_t* heap);
 	매개변수 표현은 kmalloc, kmalloc_a로 사용할 수 있다.
 	kmalloc_ap, kmalloc_p.
 */
+
+// 내부적으로 memory_alloc을 호출해 메모리 할당
 u32int kmalloc_int(u32int sz, int align, u32int* phys);
 
+// 내부적으로 kmalloc_int를 호출
 u32int kmalloc_a(u32int sz);
-
 // sz 만큼 메모리를 할당해 phys로 리턴한다.
 u32int kmalloc_p(u32int sz, u32int* phys);
-
 // sz 만큼 메모리를 할당하고 물리주소는 phys에 리턴된다.
 u32int kmalloc_ap(u32int sz, u32int* phys);
+
 
 // 일반적인 할당함수
 u32int kmalloc(u32int sz);

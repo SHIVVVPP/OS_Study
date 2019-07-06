@@ -41,7 +41,7 @@ namespace HeapManager
 
 	bool MapHeapToAddressSpace(PageDirectory* curPageDirectory)		
 	{
-		int endAddress = (uint32_t)KERNEL_VIRTUAL_HEAP_ADDRESS + m_heapFrameCount * PMM_BLOCK_SIZE;
+		int endAddress = (uint32_t)KERNEL_VIRTUAL_HEAP_ADDRESS + m_heapFrameCount * PMM_MEMORY_PER_BLOCKS;
 		//int frameCount = (endAddress - KERNEL_VIRTUAL_HEAP_ADDRESS) / PAGE_SIZE;
 
 		for (int i = 0; i < m_heapFrameCount; i++)

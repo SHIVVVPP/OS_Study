@@ -54,7 +54,10 @@ namespace VirtualMemoryManager
 	{
 		// 페이지 디렉토리를 생성한다.
 		// 4GB를 표현하기 위해서 페이지 디렉토리는 하나면 충분하다. (1024 * 1024 * 4MB)
+		// 페이지 디렉토리는 1024개의 페이지 테이블을 가진다.
+		// 1024 * 1024(페이지 테이블 엔트리의 수) * 4KB(프레임의 크기) = 4GB
 		int index = 0;
+		// 페이지 디렉토리 풀에서 사용할 수 있는 페이지 디렉토리를 하나 얻어낸다.
 		for (; index < MAX_PAGE_DIRECTORY_COUNT; index++)
 		{
 			if (g_pageDirectoryAvailable[index] == true)
@@ -69,13 +72,15 @@ namespace VirtualMemoryManager
 		if (dir == NULL)
 			return nullptr;
 
+		// 얻어낸 페이지 디렉토리는 사용 중임을 표시하고 초기화 한다.
 		g_pageDirectoryAvailable[index] = false;
 		memset(dir, 0, sizeof(PageDirectory));
 
-		uint32_t frame = 0x00000000;
-		uint32_t virt = 0x00000000;
+		uint32_t frame = 0x00000000;	// 물리 주소의 시작 어드레스
+		uint32_t virt = 0x00000000;		// 가상 주소의 시작 어드레스
 
-		//페이지 테이블 생성
+		// 페이지 테이블 생성. 페이지 테이블 ㅎ하나는 4MB 주소 공간을 표현한다.
+		// 페이지 테이블을 두 개 생성하며 가상주소와 물리주소가 같은 아이덴티티 매핑을 한다.
 		for (int i = 0; i < 2; i++)
 		{
 			PageTable* identityPageTable = (PageTable*)PhysicalMemoryManager::AllocBlock();
@@ -97,7 +102,7 @@ namespace VirtualMemoryManager
 
 			// 페이지 디렉토리에 페이지 디렉토리 엔트리(PDE)를 한개 세트한다.
 			// 0번째 인덱스에 PDE를 세트한다.(가상주소가 0x00000000일시 참조됨)
-			// 앞에서 생성한 아이덴티티 페이지 테이블을 세팅한다.
+			// 앞에서 생성한 아이덴티티 페이지 테이블을 페이지 디렉토리 엔트리(PDE)에 세팅한다.
 			// 가상주소 = 물리주소
 			PDE* identityEntry = &dir->m_entries[PAGE_DIRECTORY_INDEX((virt - 0x00400000))]; // 0x400000 = 8MB
 			PageDirectoryEntry::AddAttribute(identityEntry, I86_PDE_PRESENT | I86_PDE_WRITABLE);
@@ -226,7 +231,11 @@ namespace VirtualMemoryManager
 						// 페이지 디렉토리		가상 주소,		플래그
 	bool CreatePageTable(PageDirectory* dir, uint32_t virt, uint32_t flags)
 	{
+		// PDE의 배열(PDE*) = 페이지 디렉토리
 		PDE* pageDirectory = dir->m_entries;
+
+		// 가상주소의 앞의 10 비트가 PDE의 인덱스를 나타낸다.
+		// pageDirectory[virt >> 22] == 0 이라는 것은 페이지 디렉토리가 비어있다는 것이다.
 		if (pageDirectory[virt >> 22] == 0)
 		{
 			void* pPageTable = PhysicalMemoryManager::AllocBlock();
@@ -323,12 +332,16 @@ namespace VirtualMemoryManager
 
 		PDE* pageDir = dir->m_entries;
 
+		// 페이지 디렉토리의 PDE에 페이지 테이블 프레임값이 설정되어 있지 않다면
+		// 새로운 페이지 테이블을 생성한다.
 		if (pageDir[virt >> 22] == 0)
 			CreatePageTable(dir, virt, flags);
 
 		uint32_t mask = (uint32_t)(~0xfff); // 11111111 11111111 11110000 0000 0000
 		uint32_t* pageTable = (uint32_t*)(pageDir[virt >> 22] & mask);
 
+		// 페이지 테이블에서 PTE를 구한 뒤, 물리주소와 플래그를 설정한다.
+		// 가상주소와 물리주소 매핑
 		pageTable[virt << 10 >> 10 >> 12] = phys | flags;
 
 		PhysicalMemoryManager::EnablePaging(true);
@@ -341,6 +354,14 @@ namespace VirtualMemoryManager
 		if (pagedir[virtualAddress >> 22] == 0)
 			return NULL;
 
+		// pageDir[virt >>22] 페이지 디렉토리에서 페이지 디렉토리 엔트리를 얻는다.
+		// (uint32_t*)(pageDir[virt >> 22] & ~0xFFF) 이부분은 페이지 테이블을 가리킨다.
+		// pageDir[virt >> 22] & 0xFFFFF000 
+		// (uint32_t*)(pagedir[virtualAddress >> 22] & ~0xfff))[virtualAddress << 10 >> 10 >> 12];
+		// 앞의 페이지 디렉토리 인덱스를 가리키는 비트 부분을 0으로 만들기위해 먼저 << 10 해주고 다시 >>10 한 뒤,
+		// >> 12 해준다.
+		// 이것은 결국 코드는 페이지 테이블 엔트리(PTE)를 가리킨다.
+		// 이 페이지 테이블 엔트리에 물리주소와 플래그 값을 설정하면 가상주소와 물리주소와의 매핑이 완료된다.
 		return (void*)((uint32_t*)(pagedir[virtualAddress >> 22] & ~0xfff))[virtualAddress << 10 >> 10 >> 12];
 	}
 
