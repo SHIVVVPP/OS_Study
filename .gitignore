@@ -9,9 +9,11 @@
 *.pdb
 *.obj
 *.zip
+*.img
+*.pptx
 
 /Test/OSProject/CommonLib/*
 /Test/OSProject/Debug/*
 /Test/OSProject/.vs/*
 /Test/OSProject/SkyOS32/Intermediate/*
-*.pptx
+64비트멀티코어OS구조와원리/8_A20 게이트 활성화와 1MB 이상의 메모리 접근/Disk.img
