@@ -16,76 +16,159 @@
 프로젝트 -> 속성
 
   - 일반탭
-  
-    > ![Image](https://i.imgur.com/fYYrpZF.png)
-    >
-    > 정리할 때 삭제할 확장명 : 
-    >
-    > ``*.exp*.obj%3b*.ilk%3b*.tlb%3b*.tli%3b*.tlh%3b*.tmp%3b*.rsp%3b*.pgc%3b*.pgd%3b$(TargetPath);$(ExtensionsToDeleteOnClean)``
-  
+
+> ![image](https://user-images.githubusercontent.com/34773827/61059548-21924700-a434-11e9-87e0-82dfd499b4fa.png)
+>
+> **출력 디렉터리 : **
+>
+> - 링커 등의 도구가 빌드 프로세스 중에 생성되는 모든 최종 출력 파일을 배치하는 디렉터리를 지정한다.
+>
+> **중간 디렉터리 :**
+>
+> - 컴파일러 등의 도구가 빌드 프로세스 중에 생성되는 모든 중간 파일을 배치하는 디렉터리를 지정한다.
+>
+> **대상 이름 :**
+>
+> - 이 프로젝트에서 생성하는 파일 이름을 지정한다.
+>
+> **정리할 때 삭제할 확장명** : 
+>
+> - 프로젝트 구성이 블드되는 중간 디렉터리에서 파일을 삭제한다.
+>   이 속성을 통해 지정된 확장명을 가진 파일은 정리를 실행하거나 다시 빌드를 수행할 경우 ㅏㄱ제된다.
+>
+>   ``*.exp*.obj%3b*.ilk%3b*.tlb%3b*.tli%3b*.tlh%3b*.tmp%3b*.rsp%3b*.pgc%3b*.pgd%3b$(TargetPath);$(ExtensionsToDeleteOnClean)``
+>
+> 
+
   - C/C++ 
   
     > 일반
     >
-    > ![Image](https://i.imgur.com/Te7okQV.png)
+    > ![image](https://user-images.githubusercontent.com/34773827/61059613-3a9af800-a434-11e9-8423-985a6a158dcb.png)
     >
     > 추가 포함 디렉터리는 디렉터리 경로에 따라 ./,../ 를 수정하여 설정
     >
     > > 상대 경로의 현재 작업디렉토리는 현재 프로젝트 파일(.vcxproj)이 있는 곳 부터 시작
     >
+    > 경고 수준 : 수준4(/W4)
+    >
     > 디버그 정보 형식 : **프로그램 데이터베이스(/Zi)**  pdb 생성
-  
-    > 최적화
+- 최적화
+
+  >![1562855663834](C:\Users\sinsd\AppData\Roaming\Typora\typora-user-images\1562855663834.png)
+
+-  전처리기
+
+  >
+    > ![image](https://user-images.githubusercontent.com/34773827/61059732-75049500-a434-11e9-9d09-4881f436799e.png)
     >
-    > ![Image](https://i.imgur.com/HyQCeI5.png)
-  
-    > 전처리기
-    >
-    > ![Image](https://i.imgur.com/Pm0pVIK.png)
-  
-    > 코드 생성
-    >
-    > ![Image](https://i.imgur.com/ua3miq5.png)
-  
-    > 언어![Image](https://i.imgur.com/pu1WMuq.png)
-  
-    > 고급
-    >
-    > ![Image](https://i.imgur.com/RMvwndq.png)
-  
+    > 전처리기 정의 : DEBUG;ARCH_X86;%(PreprocessorDefinitions);
+  >
+    > 포준 포함 경로 무시 : 예(/X)
+
+- 코드 생성
+
+>
+>![image](https://user-images.githubusercontent.com/34773827/61059822-a715f700-a434-11e9-9405-027b5b49707d.png)
+
+  >
+  > 런타임 라이브러리 : 다중 스레드 DLL(/MD)
+  >
+  > 구조체 멤버 맞춤 : 1바이트(/Zp1)
+  >
+  > 보안 검사 : 보안검사 사용 안함(/GS-)
+  >
+  > 함수 수준 링크 사용 : 예(/Gy)
+
+  > 언어
+  >
+  > ![image](https://user-images.githubusercontent.com/34773827/61059955-d88ec280-a434-11e9-960a-7780f3473d2a.png)
+  >
+  > 준수 모드 : 아니오
+  >
+  > 런타임 형식 정보 사용 : 아니오(/GR-)
+
+  > 고급
+  >
+  > ![image](https://user-images.githubusercontent.com/34773827/61060043-f3f9cd80-a434-11e9-9af9-43cc3cc1715a.png)
+  >
+  > 호출 규칙 : __cdecl(/Gd)
+  >
+  > 컴파일 옵션 : 기본값
+  >
+  > 특정 경고 사용 안함 : 4457; 4189; 4100; 4702; 4102; 4244
+
+  명령중 : /Oy
+
   - 링커
   
     > 일반
     >
-    > ![Image](https://i.imgur.com/HKhv2WG.png)
-  
+    > ![image](https://user-images.githubusercontent.com/34773827/61060211-29062000-a435-11e9-9ed1-22df9b91b44e.png)
+  >
+    > 증분 링크 사용 : 아니요(/INCREMENTAL:NO)
+    >
+    > 추가 라이브러리 디렉터리 : ../Debug ( 부모 프로젝트에서 포함 X)
+  >
+    > 라비르러리 종속성 링크 : 예
+
     > 입력
+  >
+    > ![image](https://user-images.githubusercontent.com/34773827/61060353-5a7eeb80-a435-11e9-88fa-62286b72c036.png)
     >
-    > ![Image](https://i.imgur.com/27oQyXd.png)
-  
+    > 추가 종속성 : CommonLib.lib (부모 프로젝트에서 포함 X)
+  >
+    > 모든 기본 라이브러리 무시 : 예(/NODEFAULTLIB)
+
     > 매니페스트 파일
+  >
+    > ![image](https://user-images.githubusercontent.com/34773827/61060450-80a48b80-a435-11e9-9f31-c7378087250e.png)
     >
-    > ![Image](https://i.imgur.com/ppbbT3T.png)
-  
+    > 매니페스트 생성 : 아니요(/MANIFEST:NO)
+
     > 디버깅
     >
-    > ![Image](https://i.imgur.com/HzHdu5O.png)
-  
-    > 시스템
+    > ![image](https://user-images.githubusercontent.com/34773827/61060536-a5006800-a435-11e9-8e3c-bff46ac975ea.png)
+  >
+    > 디버그 정보 생성 : NO
     >
-    > ![Image](https://i.imgur.com/gHEo37B.png)
-  
-    > 최적화
-    >
-    > ![Image](https://i.imgur.com/z0bXxum.png)
-  
-    > 고급
-    >
-    > ![Image](https://i.imgur.com/lhWETAi.png)
-  
-    > 명령줄
-    >
-    > ![Image](https://i.imgur.com/iABg3Gn.png)
+    > 맵 파일 생성 : 예(/MAP)
+>
+  > 맵 파일 이름 : $(OutDir)$(TargetName).map
+
+  > 시스템
+  >
+  > ![image](https://user-images.githubusercontent.com/34773827/61060614-c5c8bd80-a435-11e9-9386-0c58a707287d.png)
+  >
+  > 드라이버 설정 안함
+
+  > 최적화
+  >
+  > ![image](https://user-images.githubusercontent.com/34773827/61060645-d2e5ac80-a435-11e9-80f8-1f796fc1afef.png)
+  >
+  > 참조 : 예(/OPT:REF)
+  >
+  > COMDAT 정리 사용 : 예(/OPT:ICF)
+  >
+  > 함수 순서 : @order.txt
+
+  > 고급
+  >
+  > ![image](https://user-images.githubusercontent.com/34773827/61060711-f01a7b00-a435-11e9-8487-daad0cba23d2.png)
+  >
+  > 진입점 : multiboot_entry
+  >
+  > 진입점 없음 : 아니요
+  >
+  > 기준 주소 : 0x00100000
+  >
+  > 임의 기준 주소 : 아니요(/DYNAMICBASE:NO)
+  >
+  > ...
+
+  > 명령줄
+  >
+  > ![Image](https://i.imgur.com/iABg3Gn.png)
 
 - MultiBoot.h 작성
 
