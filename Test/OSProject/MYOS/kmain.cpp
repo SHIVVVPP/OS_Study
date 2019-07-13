@@ -76,27 +76,11 @@ _declspec(naked) void multiboot_entry(void)
 	}
 }
 
-void HardwareInitialize();
-bool InitMemoryManager(multiboot_info* bootinfo);
+void InitContext(multiboot_info* bootInfo);
+void InitHardware();
+bool InitMemoryManager(multiboot_info* pBootInfo);
 
-void TestFPU()
-{
-	float sampleFloat = 0.3f;
-	sampleFloat *= 5.482f;
-	CYNConsole::Print("Sample Float Value %f\n", sampleFloat);
-}
 
-int _divider = 0;
-int _dividend = 100;
-void TestInterrupt()
-{
-	int result = _dividend / _divider;
-
-	if (_divider != 0)
-		result = _dividend / _divider;
-
-	CYNConsole::Print("Result is %d, divider : %d\n", result, _divider);
-}
 
 // 위 multiboot_entry에서 ebx eax에 푸쉬한 멀티 부트 구조체 포인터(->addr), 매직넘버(->magic)로 호출
 void kmain(unsigned long magic, unsigned long addr)
@@ -105,28 +89,44 @@ void kmain(unsigned long magic, unsigned long addr)
 	InitializeConstructors();
 
 	multiboot_info* pBootInfo = (multiboot_info*)addr;
-	//-
 
-	CYNConsole::Initialize();
-
-	//add
-	//헥사를 표시할 때 %X는 integer, %x는 unsigned integer의 헥사값을 표시한다.
-	CYNConsole::Print("*** MY OS Console System Init ***\n");
-
-	CYNConsole::Print("GRUB Information\n");
-	CYNConsole::Print("Boot Loader Name : %s\n", (char*)pBootInfo->boot_loader_name);
-	//-
+	InitContext(pBootInfo);
+	
 
 	// 하드웨어 초기화 과정중 인터럽트가 발생하지 않아야 하므로
 	kEnterCriticalSection();
 
-	HardwareInitialize();
-	CYNConsole::Print("Hardware Init Complete\n");
+	InitHardware();
+	// 물리/ 가상 메모리 매니저 초기화
+	InitMemoryManager(pBootInfo);
+
 	
+
+
+	kLeaveCriticalSection();
+	////타이머를 시작한다.
+	
+	StartPITCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
+
+	//TestInterrupt();
+
+	for (;;);
+}
+
+// 하드웨어 초기화
+void InitHardware()
+{
+	GDTInitialize();
+	IDTInitialize(0x8);
+	PICInitialize(0x20, 0x28);
+	InitializePIT();
+
+	CYNConsole::Print("Hardware Init Complete\n");
+
 	SetInterruptVector();
 	CYNConsole::Print("Interrupt Handler Init Complete\n");
 
-	
+
 	if (false == InitFPU())
 	{
 		CYNConsole::Print("[Warning] Floating Pointer Unit(FPU) Detection Fail!\n");
@@ -137,10 +137,24 @@ void kmain(unsigned long magic, unsigned long addr)
 		CYNConsole::Print("FPU Init...\n");
 		//TestFPU();
 	}
+}
 
-	// 물리/ 가상 메모리 매니저 초기화
-	InitMemoryManager(pBootInfo);
+//  메모리 매니저
+bool InitMemoryManager(multiboot_info* pBootInfo)
+{
+	// 물리/가상 메모리 매니저를 초기화한다.
+	// 기본 설정 시스템 메모리는 128MB
 	CYNConsole::Print("Memory Manager Init Complete\n");
+
+	PhysicalMemoryManager::EnablePaging(false);
+
+	//물리 메모리 매니저 초기화
+	PhysicalMemoryManager::Initialize(pBootInfo);
+	PhysicalMemoryManager::Dump();
+
+	//가상 메모리 매니저 초기화
+	VirtualMemoryManager::Initialize(); 
+	PhysicalMemoryManager::Dump();
 
 	// 힙 초기화
 	int heapFrameCount = 256 * 10 * 5; // 프레임 수 12800개, 52MB
@@ -157,42 +171,18 @@ void kmain(unsigned long magic, unsigned long addr)
 	HeapManager::InitKernelHeap(heapFrameCount);
 	CYNConsole::Print("Heap %dMB Allocated\n", requireHeapSize / 1048576); // 1MB = 1048576byte
 
-
-	kLeaveCriticalSection();
-	////타이머를 시작한다.
-	
-	StartPITCounter(100, I86_PIT_OCW_COUNTER_0, I86_PIT_OCW_MODE_SQUAREWAVEGEN);
-
-	//TestInterrupt();
-
-	for (;;);
-}
-
-// 하드웨어 초기화
-void HardwareInitialize()
-{
-	GDTInitialize();
-	IDTInitialize(0x8);
-	PICInitialize(0x20, 0x28);
-	InitializePIT();
-}
-
-bool InitMemoryManager(multiboot_info* pBootInfo)
-{
-	// 물리/가상 메모리 매니저를 초기화한다.
-	// 기본 설정 시스템 메모리는 128MB
 	CYNConsole::Print("Memory Manager Init Complete\n");
-
-	PhysicalMemoryManager::EnablePaging(false);
-
-	//물리 메모리 매니저 초기화
-	PhysicalMemoryManager::Initialize(pBootInfo);
-	PhysicalMemoryManager::Dump();
-
-	//가상 메모리 매니저 초기화
-	VirtualMemoryManager::Initialize(); 
-	PhysicalMemoryManager::Dump();
 	return true;
 }
 
+void InitContext(multiboot_info* pBootInfo)
+{
+	CYNConsole::Initialize();
 
+	//add
+	//헥사를 표시할 때 %X는 integer, %x는 unsigned integer의 헥사값을 표시한다.
+	CYNConsole::Print("*** MY OS Console System Init ***\n");
+
+	CYNConsole::Print("GRUB Information\n");
+	CYNConsole::Print("Boot Loader Name : %s\n", (char*)pBootInfo->boot_loader_name);
+}
