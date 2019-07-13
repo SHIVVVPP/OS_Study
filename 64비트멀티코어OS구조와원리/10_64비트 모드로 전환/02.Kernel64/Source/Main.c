@@ -9,7 +9,7 @@ void Main(void)
 {
     kPrintString(0,11,0x2F,"Switch To IA-32e Mode Success!");
     kPrintString(0,12,0x2F,"IA-32e C Language Kernel Start..............[    ]");
-    kPrintString(45,11,0xA9,"Pass");
+    kPrintString(45,12,0xA9,"Pass");
 }
 
 // 문자열 출력 함수
