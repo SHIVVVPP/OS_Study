@@ -192,7 +192,6 @@ void kSetIDTEntry( IDTENTRY* pstEntry, void* pvHandler, WORD wSelector,
 void kDummyHandler( void );
 
 #endif
-
 ```
 
 
@@ -332,13 +331,14 @@ void kSetIDTEntry( IDTENTRY* pstEntry, void* pvHandler, WORD wSelector,
  */
 void kDummyHandler( void )
 {
-    kPrintString( 0, 0,0xAD, "====================================================" );
-    kPrintString( 0, 1,0xA4, "          Dummy Interrupt Handler Execute~!!!       " );
-    kPrintString( 0, 2,0xA4, "           Interrupt or Exception Occur~!!!!        " );
-    kPrintString( 0, 3,0xAD, "====================================================" );
+    kPrintString( 0, 21,0xAD, "====================================================" );
+    kPrintString( 0, 22,0xA4, "          Dummy Interrupt Handler Execute~!!!       " );
+    kPrintString( 0, 23,0xA4, "           Interrupt or Exception Occur~!!!!        " );
+    kPrintString( 0, 24,0xAD ,"====================================================" );
 
     while( 1 ) ;
 }
+
 ```
 
 ## 어셈블리어 유틸리티 파일 수정
@@ -403,6 +403,8 @@ kLoadIDTR:
     lidt [ rdi ]    ; 파라미터 1(IDTR의 어드레스)을 프로세서에 로드하여
                     ; IDT 테이블을 설정
     ret
+
+
 ```
 
 ### 02.Kernel64/Source/AssemblyUtiltiy.h
@@ -441,10 +443,14 @@ void kLoadIDTR( QWORD qwIDTRAddress);
 
 #include "Types.h"
 
-// 함수
-void kMemSet(void* pvDestination, BYTE pData, int iSize);
-void kMemCpy(void* pvDestination, const void* pvSource, int iSize);
-void kMemCmp(const void* pvDestination, const void* pvSource, int iSize);
+////////////////////////////////////////////////////////////////////////////////
+//
+//  함수
+//
+////////////////////////////////////////////////////////////////////////////////
+void kMemSet( void* pvDestination, BYTE bData, int iSize );
+int kMemCpy( void* pvDestination, const void* pvSource, int iSize );
+int kMemCmp( const void* pvDestination, const void* pvSource, int iSize );
 
 #endif /*__UTILTITY_H__ */
 ```
@@ -500,7 +506,144 @@ int kMemCmp( const void* pvDestination, const void* pvSource, int iSize )
     }
     return 0;
 }
+
 ```
 
 <hr>
+
+## C 언어 커널 엔트리 포인트 파일 수정
+
+#### 02.Kernel64/Source/Main.c
+
+```c
+#include "Types.h"
+///////////////////////////////////////////////////////////////
+// 				키보드 드바이스 드라이버 추가				  ///
+//////////////////////////////////////////////////////////////
+#include "Keyboard.h"
+/////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////
+// 				GDT, IDT 테이블 TSS 세그먼트 추가			  //
+//////////////////////////////////////////////////////////////
+#include "Descriptor.h"
+//////////////////////////////////////////////////////////////
+
+
+// 함수 선언
+void kPrintString( int iX, int iY, BYTE Attr, const char* pcString);
+
+// 아래 함수는 C 언어 커널의 시작 부분이다.
+void Main(void)
+{
+	/////////////////////////////////////////////////////////////
+	// 				키보드 드바이스 드라이버 추가				///
+	/////////////////////////////////////////////////////////////
+	char vcTemp[2] = {0,};
+	BYTE bFlags;
+	BYTE bTemp;
+	int i = 0;
+	/////////////////////////////////////////////////////////////
+
+    kPrintString(0,11,0x2F,"Switch To IA-32e Mode Success!");
+    kPrintString(0,12,0x2F,"IA-32e C Language Kernel Start..............[    ]");
+    kPrintString(45,12,0xA9,"Pass");
+
+	///////////////////////////////////////////////////////////////
+	// 				GDT, IDT 테이블 TSS 세그먼트 추가			  //
+	//////////////////////////////////////////////////////////////
+	kPrintString(0, 13, 0xCF,"GDT Initialize And Switch For IA-32e Mode...[    ]");
+	kInitializeGDTTableAndTSS();
+	kLoadGDTR(GDTR_STARTADDRESS);
+	kPrintString(45,13,0x4A,"Pass");
+
+	kPrintString(0,14,0xCF,"TSS Segment Load............................[    ]");
+	kLoadTR(GDT_TSSSEGMENT);
+	kPrintString(45,14,0x4A,"Pass");
+
+	kPrintString(0,15,0xCF,"IDT Initialize..............................[    ]");
+	kInitializeIDTTables();
+	kLoadIDTR(IDTR_STARTADDRESS);
+	kPrintString(45,15,0x4A,"Pass");
+	//////////////////////////////////////////////////////////////
+
+
+	/////////////////////////////////////////////////////////////
+	// 				키보드 드바이스 드라이버 추가				///
+	/////////////////////////////////////////////////////////////
+	kPrintString(0,16,0x39,"Keyboard Active.............................[    ]");
+
+	// 키보드 활성화
+	if(kActivateKeyboard() == TRUE)
+	{
+		kPrintString(45,16,0xA9,"Pass");
+		kChangeKeyboardLED(FALSE,FALSE,FALSE);
+	}
+	else
+	{
+		kPrintString(45,16,0x34,"Fail");
+		while(1);
+	}
+
+	while(1)
+	{
+		kPrintString(0,18,0xFC,"Keyboard :");
+		// 출력 버퍼(포트 0x60)가 차 있으면 스캔 코드를 읽을 수 있다.
+		if(kIsOutputBufferFull() == TRUE)
+		{
+			// 출력 버퍼(포트 0x60)에서 스캔 코드를 읽어서 저장
+			bTemp = kGetKeyboardScanCode();
+
+			// 스캔 코드를 ASCII 코드로 변환하는 함수를 호출하여 ASCII 코드와
+			// 눌림 또는 떨어짐 정보를 반환한다.
+			if(kConvertScanCodeToASCIICode(bTemp,&(vcTemp[0]),&bFlags) == TRUE)
+			{
+				// 키가 눌러졌으면 키의 ASCII 코드 값을 화면에 출력한다.
+				if(bFlags & KEY_FLAGS_DOWN)
+				{
+					kPrintString(i++, 20, 0xF1,vcTemp);
+					///////////////////////////////////////////////////////////////
+					// 				GDT, IDT 테이블 TSS 세그먼트 추가			  //
+					//////////////////////////////////////////////////////////////
+					// 0이 입력되면 변수를 0으로 나누어 Divide Error 예외(벡터 0번)를 발생시킨다.
+					if(vcTemp[0] == '0')
+					{
+						// 아래 코드를 수행하면 Divide Error 예외가 발생하여 
+						// 커널의 임시 핸들러가 수행된다.
+						bTemp = bTemp / 0;
+					}
+					//////////////////////////////////////////////////////////////
+				}
+			}
+		}
+	} 
+	/////////////////////////////////////////////////////////////
+}
+
+// 문자열 출력 함수
+void kPrintString( int iX, int iY, BYTE Attr,  const char* pcString)
+{
+	CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
+	int i;
+	
+	pstScreen += ( iY * 80 ) + iX;
+	for(i = 0; pcString[ i ] != 0; i++)
+	{
+		pstScreen[ i ].bCharactor = pcString[ i ];
+		pstScreen[ i ].bAttribute = Attr;
+	}
+}
+```
+
+
+
+## 빌드와 실행
+
+![image](https://user-images.githubusercontent.com/34773827/61185081-cf4d6200-a68f-11e9-9463-7b300f1261da.png)
+
+0을 눌러 Divide Error 예외를 발생시키면
+
+![image](https://user-images.githubusercontent.com/34773827/61185084-ee4bf400-a68f-11e9-82cf-8e5090b30b47.png)
+
+임시 핸들러가 수행되는것을 확인할 수 있다.
 

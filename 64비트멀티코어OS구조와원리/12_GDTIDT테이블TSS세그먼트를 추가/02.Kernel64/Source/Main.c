@@ -31,20 +31,39 @@ void Main(void)
     kPrintString(0,12,0x2F,"IA-32e C Language Kernel Start..............[    ]");
     kPrintString(45,12,0xA9,"Pass");
 
+	///////////////////////////////////////////////////////////////
+	// 				GDT, IDT 테이블 TSS 세그먼트 추가			  //
+	//////////////////////////////////////////////////////////////
+	kPrintString(0, 13, 0xCF,"GDT Initialize And Switch For IA-32e Mode...[    ]");
+	kInitializeGDTTableAndTSS();
+	kLoadGDTR(GDTR_STARTADDRESS);
+	kPrintString(45,13,0x4A,"Pass");
+
+	kPrintString(0,14,0xCF,"TSS Segment Load............................[    ]");
+	kLoadTR(GDT_TSSSEGMENT);
+	kPrintString(45,14,0x4A,"Pass");
+
+	kPrintString(0,15,0xCF,"IDT Initialize..............................[    ]");
+	kInitializeIDTTables();
+	kLoadIDTR(IDTR_STARTADDRESS);
+	kPrintString(45,15,0x4A,"Pass");
+	//////////////////////////////////////////////////////////////
+
+
 	/////////////////////////////////////////////////////////////
 	// 				키보드 드바이스 드라이버 추가				///
 	/////////////////////////////////////////////////////////////
-	kPrintString(0,13,0x39,"Keyboard Active.............................[    ]");
+	kPrintString(0,16,0x39,"Keyboard Active.............................[    ]");
 
 	// 키보드 활성화
 	if(kActivateKeyboard() == TRUE)
 	{
-		kPrintString(45,13,0xA9,"Pass");
+		kPrintString(45,16,0xA9,"Pass");
 		kChangeKeyboardLED(FALSE,FALSE,FALSE);
 	}
 	else
 	{
-		kPrintString(45,13,0x34,"Fail");
+		kPrintString(45,16,0x34,"Fail");
 		while(1);
 	}
 

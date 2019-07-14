@@ -3,9 +3,13 @@
 
 #include "Types.h"
 
-// 함수
-void kMemSet(void* pvDestination, BYTE pData, int iSize);
-void kMemCpy(void* pvDestination, const void* pvSource, int iSize);
-void kMemCmp(const void* pvDestination, const void* pvSource, int iSize);
+////////////////////////////////////////////////////////////////////////////////
+//
+//  함수
+//
+////////////////////////////////////////////////////////////////////////////////
+void kMemSet( void* pvDestination, BYTE bData, int iSize );
+int kMemCpy( void* pvDestination, const void* pvSource, int iSize );
+int kMemCmp( const void* pvDestination, const void* pvSource, int iSize );
 
 #endif /*__UTILTITY_H__ */
