@@ -1,133 +1,3 @@
-# 키보드 디바이스 드라이버의 통합과 빌드
-
-## 키보드 디바이스 드라이버 파일 추가
-
-### Keyboard.c Keyboard.h
-
-#### 02.Kernel64/Source/Keyboard.h
-
-```c
-#ifndef __KEYBOARD_H__
-#define __KEYBOARD_H__
-
-#include "Types.h"
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// 매크로
-//
-////////////////////////////////////////////////////////////////////////////////
-// Pause 키를 처리하기 위해 무시해야 하는 나머지 스캔 코드의 수
-#define KEY_SKIPCOUNTFORPAUSE       2
-
-// 키 상태에 대한 플래그
-#define KEY_FLAGS_UP             0x00
-#define KEY_FLAGS_DOWN           0x01
-#define KEY_FLAGS_EXTENDEDKEY    0x02
-
-// 스캔 코드 매핑 테이블에 대한 매크로
-#define KEY_MAPPINGTABLEMAXCOUNT    89
-
-#define KEY_NONE        0x00
-#define KEY_ENTER       '\n'
-#define KEY_TAB         '\t'
-#define KEY_ESC         0x1B
-#define KEY_BACKSPACE   0x08
-
-#define KEY_CTRL        0x81
-#define KEY_LSHIFT      0x82
-#define KEY_RSHIFT      0x83
-#define KEY_PRINTSCREEN 0x84
-#define KEY_LALT        0x85
-#define KEY_CAPSLOCK    0x86
-#define KEY_F1          0x87
-#define KEY_F2          0x88
-#define KEY_F3          0x89
-#define KEY_F4          0x8A
-#define KEY_F5          0x8B
-#define KEY_F6          0x8C
-#define KEY_F7          0x8D
-#define KEY_F8          0x8E
-#define KEY_F9          0x8F
-#define KEY_F10         0x90
-#define KEY_NUMLOCK     0x91
-#define KEY_SCROLLLOCK  0x92
-#define KEY_HOME        0x93
-#define KEY_UP          0x94
-#define KEY_PAGEUP      0x95
-#define KEY_LEFT        0x96
-#define KEY_CENTER      0x97
-#define KEY_RIGHT       0x98
-#define KEY_END         0x99
-#define KEY_DOWN        0x9A
-#define KEY_PAGEDOWN    0x9B
-#define KEY_INS         0x9C
-#define KEY_DEL         0x9D
-#define KEY_F11         0x9E
-#define KEY_F12         0x9F
-#define KEY_PAUSE       0xA0
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// 구조체
-//
-////////////////////////////////////////////////////////////////////////////////
-#pragma pack( push, 1 )
-
-// 스캔 코드 테이블을 구성하는 항목
-typedef struct kKeyMappingEntryStruct
-{
-    // Shift 키나 Caps Lock 키와 조합되지 않는 ASCII 코드
-    BYTE bNormalCode;
-    
-    // Shift 키나 Caps Lock 키와 조합된 ASCII 코드
-    BYTE bCombinedCode;
-} KEYMAPPINGENTRY;
-
-// 키보드의 상태를 관리하는 자료구조
-typedef struct kKeyboardManagerStruct
-{
-    // 조합 키 정보
-    BOOL bShiftDown;
-    BOOL bCapsLockOn;
-    BOOL bNumLockOn;
-    BOOL bScrollLockOn;
-    
-    // 확장 키를 처리하기 위한 정보
-    BOOL bExtendedCodeIn;
-    int iSkipCountForPause;
-} KEYBOARDMANAGER;
-
-#pragma pack( pop )
-
-////////////////////////////////////////////////////////////////////////////////
-//
-//  함수
-//
-////////////////////////////////////////////////////////////////////////////////
-BOOL kIsOutputBufferFull( void );
-BOOL kIsInputBufferFull( void );
-BOOL kActivateKeyboard( void );
-BYTE kGetKeyboardScanCode( void );
-BOOL kChangeKeyboardLED( BOOL bCapsLockOn, BOOL bNumLockOn, BOOL bScrollLockOn );
-void kEnableA20Gate( void );
-void kReboot( void );
-BOOL kIsAlphabetScanCode( BYTE bScanCode );
-BOOL kIsNumberOrSymbolScanCode( BYTE bScanCode );
-BOOL kIsNumberPadScanCode( BYTE bScanCode );
-BOOL kIsUseCombinedCode( BOOL bScanCode );
-void UpdateCombinationKeyStatusAndLED( BYTE bScanCode );
-BOOL kConvertScanCodeToASCIICode( BYTE bScanCode, BYTE* pbASCIICode, BOOL* pbFlags );
-
-#endif /*__KEYBOARD_H__*/
-```
-
-<hr>
-
-#### Keyboard.c
-
-```c
 #include "Types.h"
 #include "AssemblyUtility.h"
 #include "Keyboard.h"
@@ -404,7 +274,91 @@ static KEYMAPPINGENTRY gs_vstKeyMappingTable[ KEY_MAPPINGTABLEMAXCOUNT ] =
     /*  1   */  {   KEY_ESC         ,   KEY_ESC         },
     /*  2   */  {   '1'             ,   '!'             },
     /*  3   */  {   '2'             ,   '@'             },
-   ... 생략 ...
+    /*  4   */  {   '3'             ,   '#'             },
+    /*  5   */  {   '4'             ,   '$'             },
+    /*  6   */  {   '5'             ,   '%'             },
+    /*  7   */  {   '6'             ,   '^'             },
+    /*  8   */  {   '7'             ,   '&'             },
+    /*  9   */  {   '8'             ,   '*'             },
+    /*  10  */  {   '9'             ,   '('             },
+    /*  11  */  {   '0'             ,   ')'             },
+    /*  12  */  {   '-'             ,   '_'             },
+    /*  13  */  {   '='             ,   '+'             },
+    /*  14  */  {   KEY_BACKSPACE   ,   KEY_BACKSPACE   },
+    /*  15  */  {   KEY_TAB         ,   KEY_TAB         },
+    /*  16  */  {   'q'             ,   'Q'             },
+    /*  17  */  {   'w'             ,   'W'             },
+    /*  18  */  {   'e'             ,   'E'             },
+    /*  19  */  {   'r'             ,   'R'             },
+    /*  20  */  {   't'             ,   'T'             },
+    /*  21  */  {   'y'             ,   'Y'             },
+    /*  22  */  {   'u'             ,   'U'             },
+    /*  23  */  {   'i'             ,   'I'             },
+    /*  24  */  {   'o'             ,   'O'             },
+    /*  25  */  {   'p'             ,   'P'             },
+    /*  26  */  {   '['             ,   '{'             },
+    /*  27  */  {   ']'             ,   '}'             },
+    /*  28  */  {   '\n'            ,   '\n'            },
+    /*  29  */  {   KEY_CTRL        ,   KEY_CTRL        },
+    /*  30  */  {   'a'             ,   'A'             },
+    /*  31  */  {   's'             ,   'S'             },
+    /*  32  */  {   'd'             ,   'D'             },
+    /*  33  */  {   'f'             ,   'F'             },
+    /*  34  */  {   'g'             ,   'G'             },
+    /*  35  */  {   'h'             ,   'H'             },
+    /*  36  */  {   'j'             ,   'J'             },
+    /*  37  */  {   'k'             ,   'K'             },
+    /*  38  */  {   'l'             ,   'L'             },
+    /*  39  */  {   ';'             ,   ':'             },
+    /*  40  */  {   '\''            ,   '\"'            },
+    /*  41  */  {   '`'             ,   '~'             },
+    /*  42  */  {   KEY_LSHIFT      ,   KEY_LSHIFT      },
+    /*  43  */  {   '\\'            ,   '|'             },
+    /*  44  */  {   'z'             ,   'Z'             },
+    /*  45  */  {   'x'             ,   'X'             },
+    /*  46  */  {   'c'             ,   'C'             },
+    /*  47  */  {   'v'             ,   'V'             },
+    /*  48  */  {   'b'             ,   'B'             },
+    /*  49  */  {   'n'             ,   'N'             },
+    /*  50  */  {   'm'             ,   'M'             },
+    /*  51  */  {   ','             ,   '<'             },
+    /*  52  */  {   '.'             ,   '>'             },
+    /*  53  */  {   '/'             ,   '?'             },
+    /*  54  */  {   KEY_RSHIFT      ,   KEY_RSHIFT      },
+    /*  55  */  {   '*'             ,   '*'             },
+    /*  56  */  {   KEY_LALT        ,   KEY_LALT        },
+    /*  57  */  {   ' '             ,   ' '             },
+    /*  58  */  {   KEY_CAPSLOCK    ,   KEY_CAPSLOCK    },
+    /*  59  */  {   KEY_F1          ,   KEY_F1          },
+    /*  60  */  {   KEY_F2          ,   KEY_F2          },
+    /*  61  */  {   KEY_F3          ,   KEY_F3          },
+    /*  62  */  {   KEY_F4          ,   KEY_F4          },
+    /*  63  */  {   KEY_F5          ,   KEY_F5          },
+    /*  64  */  {   KEY_F6          ,   KEY_F6          },
+    /*  65  */  {   KEY_F7          ,   KEY_F7          },
+    /*  66  */  {   KEY_F8          ,   KEY_F8          },
+    /*  67  */  {   KEY_F9          ,   KEY_F9          },
+    /*  68  */  {   KEY_F10         ,   KEY_F10         },
+    /*  69  */  {   KEY_NUMLOCK     ,   KEY_NUMLOCK     },
+    /*  70  */  {   KEY_SCROLLLOCK  ,   KEY_SCROLLLOCK  },
+
+    /*  71  */  {   KEY_HOME        ,   '7'             },
+    /*  72  */  {   KEY_UP          ,   '8'             },
+    /*  73  */  {   KEY_PAGEUP      ,   '9'             },
+    /*  74  */  {   '-'             ,   '-'             },
+    /*  75  */  {   KEY_LEFT        ,   '4'             },
+    /*  76  */  {   KEY_CENTER      ,   '5'             },
+    /*  77  */  {   KEY_RIGHT       ,   '6'             },
+    /*  78  */  {   '+'             ,   '+'             },
+    /*  79  */  {   KEY_END         ,   '1'             },
+    /*  80  */  {   KEY_DOWN        ,   '2'             },
+    /*  81  */  {   KEY_PAGEDOWN    ,   '3'             },
+    /*  82  */  {   KEY_INS         ,   '0'             },
+    /*  83  */  {   KEY_DEL         ,   '.'             },
+    /*  84  */  {   KEY_NONE        ,   KEY_NONE        },
+    /*  85  */  {   KEY_NONE        ,   KEY_NONE        },
+    /*  86  */  {   KEY_NONE        ,   KEY_NONE        },
+    /*  87  */  {   KEY_F11         ,   KEY_F11         },
     /*  88  */  {   KEY_F12         ,   KEY_F12         }
 };
 
@@ -626,164 +580,3 @@ BOOL kConvertScanCodeToASCIICode( BYTE bScanCode, BYTE* pbASCIICode, BOOL* pbFla
     UpdateCombinationKeyStatusAndLED( bScanCode );
     return TRUE;
 }
-```
-
-## 어셈블리 유틸리티 파일 추가
-
-키보드 디바이스 드라이버에서 사용하는 *kInPortByte( )* 와 *kOutPortByte( )* 함수는<br>어셈블리어 명령인 in 과 out을 호출하는 어셈블리어 함수이다.
-
-따라서 커널 디바이스 드라이버가 정상적으로 링크되려면, 어셈블리어 함수가 정의된 오브젝트 파일이 필요하다.
-
-#### AssemblyUtility.asm
-
-```assembly
-[BITS 64]
-
-SECTION .text
-
-; C 언어에서 호출할 수 있도록 이름을 노출한다.
-global kInPortByte, kOutPortByte
-
-; 포트로부터 1바이트를 읽는다.
-;   PARAM : 포트 번호
-kInPortByte:
-    push rdx
-
-    mov rdx, rdi
-    mov rax, 0
-    in al, dx
-
-    pop rdx
-    ret
-
-; 포트에 1바이트를 쓴다.
-;   PARAM : 포트 번호, 데이터
-kOutPortByte:
-    push rdx
-    push rax
-
-    mov rdx, rdi
-    mov rax, rsi
-    out dx, al
-
-    pop rax
-    pop rdx
-    ret
-```
-
-#### AssemblyUtility.h
-
-```c
-#ifndef __ASSEMBLYUTILITY_H__
-#define __ASSEMBLYUTILITY_H__
-
-#include "Types.h"
-
-// 함수
-BYTE kInPortByte(WORD wPort);
-void kOutPortByte(WORD wPort, BYTE bData);
-
-#endif /* __ASSEMBLYUTILITY_H__ */
-```
-
-<hr>
-
-
-
-## C 언어 커널 엔트리 포인트 파일 수정
-
-#### 02.Kernel64/Source/Main.c
-
-```c
-#include "Types.h"
-/////////////////////////////////////////////////////////////
-// 				키보드 드바이스 드라이버 추가				///
-/////////////////////////////////////////////////////////////
-#include "Keyboard.h"
-/////////////////////////////////////////////////////////////
-
-// 함수 선언
-
-void kPrintString( int iX, int iY, BYTE Attr, const char* pcString);
-
-// 아래 함수는 C 언어 커널의 시작 부분이다.
-void Main(void)
-{
-	/////////////////////////////////////////////////////////////
-	// 				키보드 드바이스 드라이버 추가				///
-	/////////////////////////////////////////////////////////////
-	char vcTemp[2] = {0,};
-	BYTE bFlags;
-	BYTE bTemp;
-	int i = 0;
-	/////////////////////////////////////////////////////////////
-
-    kPrintString(0,11,0x2F,"Switch To IA-32e Mode Success!");
-    kPrintString(0,12,0x2F,"IA-32e C Language Kernel Start..............[    ]");
-    kPrintString(45,11,0xA9,"Pass");
-
-	/////////////////////////////////////////////////////////////
-	// 				키보드 드바이스 드라이버 추가				///
-	/////////////////////////////////////////////////////////////
-	kPrintString(0,13,0x39,"Keyboard Active.............................[    ]");
-
-	// 키보드 활성화
-	if(kActivateKeyboard() == TRUE)
-	{
-		kPrintString(45,13,0xA9,"Pass");
-		kChangeKeyboardLED(FALSE,FALSE,FALSE);
-	}
-	else
-	{
-		kPrintString(45,13,0x34,"Fail");
-		while(1);
-	}
-
-	while(1)
-	{
-		// 출력 버퍼(포트 0x60)가 차 있으면 스캔 코드를 읽을 수 있다.
-		if(kIsOutputBufferFull() == TRUE)
-		{
-			// 출력 버퍼(포트 0x60)에서 스캔 코드를 읽어서 저장
-			bTemp = kGetKeyboardScanCode();
-
-			// 스캔 코드를 ASCII 코드로 변환하는 함수를 호출하여 ASCII 코드와
-			// 눌림 또는 떨어짐 정보를 반환한다.
-			if(kConvertScanCodeToASCIICode(bTemp,&(vcTemp[0]),&bFlags) == TRUE)
-			{
-				// 키가 눌러졌으면 키의 ASCII 코드 값을 화면에 출력한다.
-				if(bFlags & KEY_FLAGS_DOWN)
-				{
-					kPrintString(i++, 14, 0xF1,vcTemp);
-				}
-			}
-		}
-	}
-	
-	/////////////////////////////////////////////////////////////
-
-}
-
-// 문자열 출력 함수
-void kPrintString( int iX, int iY, BYTE Attr,  const char* pcString)
-{
-	CHARACTER* pstScreen = ( CHARACTER* ) 0xB8000;
-	int i;
-	
-	pstScreen += ( iY * 80 ) + iX;
-	for(i = 0; pcString[ i ] != 0; i++)
-	{
-		pstScreen[ i ].bCharactor = pcString[ i ];
-		pstScreen[ i ].bAttribute = Attr;
-	}
-}
-```
-
-<hr>
-
-
-
-##  빌드와 실행
-
-![image](https://user-images.githubusercontent.com/34773827/61170756-0a289a80-a5a9-11e9-9dc2-c4286d8fc8a4.png)
-
