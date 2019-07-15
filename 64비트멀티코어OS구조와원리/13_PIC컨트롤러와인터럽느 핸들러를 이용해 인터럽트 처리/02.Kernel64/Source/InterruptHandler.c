@@ -16,7 +16,7 @@ void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     kPrintString( 0, 21,0xE4, "                 Exception Occur~!!!!               " );
     kPrintString( 0, 22,0xE4, "                    Vector:                         " );
     kPrintString( 27, 22,0xE4, vcBuffer );
-    kPrintString( 0, 24,0xE4, "====================================================" );
+    kPrintString( 0, 23,0xE4, "====================================================" );
 
     while( 1 ) ;
 }
@@ -37,7 +37,7 @@ void kCommonInterruptHandler( int iVectorNumber )
     // 발생한 횟수 출력
     vcBuffer[ 8 ] = '0' + g_iCommonInterruptCount;
     g_iCommonInterruptCount = ( g_iCommonInterruptCount + 1 ) % 10;
-    kPrintString( 70, 0,0xE4, vcBuffer );
+    kPrintString( 70, 20,0xE4, vcBuffer );
     //=========================================================================
 
     // EOI 전송
@@ -60,7 +60,7 @@ void kKeyboardHandler( int iVectorNumber )
     // 발생한 횟수 출력
     vcBuffer[ 8 ] = '0' + g_iKeyboardInterruptCount;
     g_iKeyboardInterruptCount = ( g_iKeyboardInterruptCount + 1 ) % 10;
-    kPrintString( 0, 19,0xE4, vcBuffer );
+    kPrintString( 0, 20,0xE4, vcBuffer );
     //=========================================================================
 
     // EOI 전송
