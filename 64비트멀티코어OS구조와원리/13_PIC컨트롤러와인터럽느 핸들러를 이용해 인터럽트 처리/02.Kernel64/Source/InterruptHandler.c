@@ -15,7 +15,7 @@ void kCommonExceptionHandler( int iVectorNumber, QWORD qwErrorCode )
     kPrintString( 0, 20,0xE4, "====================================================" );
     kPrintString( 0, 21,0xE4, "                 Exception Occur~!!!!               " );
     kPrintString( 0, 22,0xE4, "                    Vector:                         " );
-    kPrintString( 27, 23,0xE4, vcBuffer );
+    kPrintString( 27, 22,0xE4, vcBuffer );
     kPrintString( 0, 24,0xE4, "====================================================" );
 
     while( 1 ) ;
