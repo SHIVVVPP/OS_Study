@@ -63,9 +63,17 @@ void kHelp( const char* pcParameterBuffer );
 void kCls( const char* pcParameterBuffer );
 void kShowTotalRAMSize( const char* pcParameterBuffer );
 void kStringToDecimalHexTest( const char* pcParameterBuffer );
-void kShutdown( const char* pcParamegerBuffer );
+void kShutdown( const char* pcParameterBuffer );
 
-// 내가 추가한 커맨드!
-void kSetConsoleBackGroundColor(const char* pcParameterBuffer);
-
+////////////////////////////////////////////////////////////////////////////////
+//
+// 타이머 디바이스 드라이버 추가
+//
+////////////////////////////////////////////////////////////////////////////////
+void kSetTimer(const char* pcParameterBuffer);
+void kWaitUsingPIT(const char* pcParameterBuffer);
+void kReadTimeStampCounter(const char* pcParameterBuffer);
+void kMeasureProcessorSpeed(const char* pcParameterBuffer);
+void kShowDateAndTime(const char* pcParameterBuffer);
+////////////////////////////////////////////////////////////////////////////////
 #endif /*__CONSOLESHELL_H__*/
