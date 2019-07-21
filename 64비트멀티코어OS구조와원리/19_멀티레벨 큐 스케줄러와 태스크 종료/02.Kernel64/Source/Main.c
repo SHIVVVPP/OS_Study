@@ -59,7 +59,7 @@ void Main(void)
 // 라운드 로빈 스케줄러를 추가하자
 //
 ////////////////////////////////////////////////////////////////////////////////
-    kPrintf("TCB Pool And Scheduler Initialize............[PASS]\n");
+    kPrintf( "TCB Pool And Scheduler Initialize...........[Pass]\n");
     iCursorY++;
     kInitializeScheduler();
     // 1ms당 한 번씩 인터럽트가 발생하도록 설정

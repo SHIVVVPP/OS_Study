@@ -177,7 +177,7 @@ void kInitializeScheduler( void );
 void kSetRunningTask( TCB* pstTask );
 TCB* kGetRunningTask( void );
 TCB* kGetNextTaskToRun( void );
-void kAddTaskToReadyList( TCB* pstTask );
+BOOL kAddTaskToReadyList( TCB* pstTask );
 void kSchedule( void );
 BOOL kScheduleInInterrupt( void );
 void kDecreaseProcessorTime( void );

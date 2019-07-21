@@ -264,7 +264,7 @@ TCB* kGetNextTaskToRun( void )
 /**
  *  태스크를 스케줄러의 준비 리스트에 삽입
  */
-void kAddTaskToReadyList( TCB* pstTask )
+BOOL kAddTaskToReadyList( TCB* pstTask )
 {
 ////////////////////////////////////////////////////////////////////////////////
 //

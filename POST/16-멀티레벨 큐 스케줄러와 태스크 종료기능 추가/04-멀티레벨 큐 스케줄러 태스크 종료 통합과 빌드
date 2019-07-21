@@ -1,4 +1,8 @@
-# 멀티 레벨 큐 스케줄러와
+tasklist
+![image](https://user-images.githubusercontent.com/34773827/61594069-54052680-ac22-11e9-9af8-a527af2cd987.png)
+
+cpuload
+![image](https://user-images.githubusercontent.com/34773827/61594073-68e1ba00-ac22-11e9-98e1-5f49afdf22a6.png)멀티 레벨 큐 스케줄러와
 
 # 태스크 종료기능의
 
@@ -2051,3 +2055,17 @@ static void kCPULoad( const char* pcParameterBuffer )
 
 ## 빌드 및 실행
 
+tasklist
+![image](https://user-images.githubusercontent.com/34773827/61594069-54052680-ac22-11e9-9af8-a527af2cd987.png)
+
+cpuload
+![image](https://user-images.githubusercontent.com/34773827/61594073-68e1ba00-ac22-11e9-98e1-5f49afdf22a6.png)
+
+createtask 2 5
+![image](https://user-images.githubusercontent.com/34773827/61594083-86af1f00-ac22-11e9-8929-8968b327467e.png)
+
+changepriority 0x300000002 1
+![image](https://user-images.githubusercontent.com/34773827/61594113-b52cfa00-ac22-11e9-91bd-bf3e859763a1.png)
+
+killtask 0x300000002
+![image](https://user-images.githubusercontent.com/34773827/61594129-e0174e00-ac22-11e9-8926-e82bdb01f620.png)
