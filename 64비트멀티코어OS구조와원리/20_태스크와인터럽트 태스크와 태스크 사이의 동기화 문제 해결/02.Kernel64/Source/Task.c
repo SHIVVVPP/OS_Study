@@ -11,7 +11,7 @@ static TCBPOOLMANAGER gs_stTCBPoolManager;
 /**
  *  태스크 풀 초기화
  */
-static void kInitializeTCBPool( void )
+void kInitializeTCBPool( void )
 {
     int i;
     
@@ -35,7 +35,7 @@ static void kInitializeTCBPool( void )
 /**
  *  TCB를 할당 받음
  */
-static TCB* kAllocateTCB( void )
+TCB* kAllocateTCB( void )
 {
     TCB* pstEmptyTCB;
     int i;
@@ -70,7 +70,7 @@ static TCB* kAllocateTCB( void )
 /**
  *  TCB를 해제함
  */
-static void kFreeTCB( QWORD qwID )
+void kFreeTCB( QWORD qwID )
 {
     int i;
     
@@ -98,26 +98,13 @@ TCB* kCreateTask( QWORD qwFlags, QWORD qwEntryPointAddress )
 {
     TCB* pstTask;
     void* pvStackAddress;
-////////////////////////////////////////////////////////////////////////////////
-//
-//  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-//
-//////////////////////////////////////////////////////////////////////////////// 
-    BOOL bPreviousFlag;
-
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
     
     pstTask = kAllocateTCB();
     if( pstTask == NULL )
     {
-        // 임계 영역 끝
-        kUnlockForSystemData(bPreviousFlag);
         return NULL;
     }
-    kUnlockForSystemData(bPreviousFlag);
-////////////////////////////////////////////////////////////////////////////////
-
+    
 ////////////////////////////////////////////////////////////////////////////////
 //
 // 멀티레벨 큐 스케줄러와 태스크 종료기능 추가
@@ -131,22 +118,7 @@ TCB* kCreateTask( QWORD qwFlags, QWORD qwEntryPointAddress )
     // TCB를 설정한 후 준비 리스트에 삽입하여 스케줄링될 수 있도록 함
     kSetUpTask( pstTask, qwFlags, qwEntryPointAddress, pvStackAddress, 
             TASK_STACKSIZE );
-
-    
-////////////////////////////////////////////////////////////////////////////////
-//
-//  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-//
-//////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
-
-    // 태스크를 준비 리스트에 삽입
     kAddTaskToReadyList( pstTask );
-
-    // 임계 영역 끝
-    kUnlockForSystemData(bPreviousFlag);
-////////////////////////////////////////////////////////////////////////////////
     
     return pstTask;
 }
@@ -154,7 +126,7 @@ TCB* kCreateTask( QWORD qwFlags, QWORD qwEntryPointAddress )
 /**
  *  파라미터를 이용해서 TCB를 설정
  */
-static void kSetUpTask( TCB* pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
+void kSetUpTask( TCB* pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
                  void* pvStackAddress, QWORD qwStackSize )
 {
     // 콘텍스트 초기화
@@ -223,58 +195,26 @@ void kInitializeScheduler( void )
 ////////////////////////////////////////////////////////////////////////////////
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-//
-//  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-//
-//////////////////////////////////////////////////////////////////////////////// 
 /**
  *  현재 수행 중인 태스크를 설정
  */
 void kSetRunningTask( TCB* pstTask )
 {
-    BOOL bPreviousFlag;
-
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
-
     gs_stScheduler.pstRunningTask = pstTask;
-
-    // 임계 영역 끝
-    kUnlockForSystemData(bPreviousFlag);
 }
-//////////////////////////////////////////////////////////////////////////////// 
 
-////////////////////////////////////////////////////////////////////////////////
-//
-//  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-//
-//////////////////////////////////////////////////////////////////////////////// 
 /**
  *  현재 수행 중인 태스크를 반환
  */
 TCB* kGetRunningTask( void )
 {
-    BOOL bPreviousFlag;
-    TCB* pstRunningTask;
-
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
-
-    pstRunningTask = gs_stScheduler.pstRunningTask;
-
-    // 임계 영역 끝
-    kUnlockForSystemData(bPreviousFlag);
-
-    return pstRunningTask;
+    return gs_stScheduler.pstRunningTask;
 }
-//////////////////////////////////////////////////////////////////////////////// 
 
 /**
  *  태스크 리스트에서 다음으로 실행할 태스크를 얻음
  */
-static TCB* kGetNextTaskToRun( void )
+TCB* kGetNextTaskToRun( void )
 {
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -324,7 +264,7 @@ static TCB* kGetNextTaskToRun( void )
 /**
  *  태스크를 스케줄러의 준비 리스트에 삽입
  */
-static BOOL kAddTaskToReadyList( TCB* pstTask )
+BOOL kAddTaskToReadyList( TCB* pstTask )
 {
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -352,7 +292,7 @@ static BOOL kAddTaskToReadyList( TCB* pstTask )
 /**
  *  준비 큐에서 태스크를 제거
  */
-static TCB* kRemoveTaskFromReadyList( QWORD qwTaskID )
+TCB* kRemoveTaskFromReadyList( QWORD qwTaskID )
 {
     TCB* pstTarget;
     BYTE bPriority;
@@ -384,28 +324,12 @@ static TCB* kRemoveTaskFromReadyList( QWORD qwTaskID )
 BOOL kChangePriority( QWORD qwTaskID, BYTE bPriority )
 {
     TCB* pstTarget;
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    BOOL bPreviousFlag;
-    //////////////////////////////////////////////////////////////////////////////// 
     
     if( bPriority > TASK_MAXREADYLISTCOUNT )
     {
         return FALSE;
     }
-        
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
-    //////////////////////////////////////////////////////////////////////////////// 
-
+    
     // 현재 실행중인 태스크이면 우선 순위만 변경
     // PIT 컨트롤러의 인터럽트(IRQ 0)가 발생하여 태스크 전환이 수행될 때 변경된 
     // 우선 순위의 리스트로 이동
@@ -436,16 +360,6 @@ BOOL kChangePriority( QWORD qwTaskID, BYTE bPriority )
             kAddTaskToReadyList( pstTarget );
         }
     }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역의 끝
-    kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
-
     return TRUE;    
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -473,28 +387,13 @@ void kSchedule( void )
     
     
     // 전환하는 도중 인터럽트가 발생하여 태스크 전환이 또 일어나면 곤란하므로 전환하는 
-    // 동안 인터럽트가 발생하지 못하도록 설정 
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
-    //////////////////////////////////////////////////////////////////////////////// 
-
+    // 동안 인터럽트가 발생하지 못하도록 설정
+    bPreviousFlag = kSetInterruptFlag( FALSE );
     // 실행할 다음 태스크를 얻음
     pstNextTask = kGetNextTaskToRun();
     if( pstNextTask == NULL )
     {
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-        // 임계 영역의 끝
-        kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
+        kSetInterruptFlag( bPreviousFlag );
         return ;
     }
     
@@ -531,15 +430,7 @@ void kSchedule( void )
     // 프로세서 사용 시간을 업데이트
     gs_stScheduler.iProcessorTime = TASK_PROCESSORTIME;
 
-    
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역의 끝
-    kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
+    kSetInterruptFlag( bPreviousFlag );
 }
 
 /**
@@ -551,29 +442,10 @@ BOOL kScheduleInInterrupt( void )
     TCB* pstRunningTask, * pstNextTask;
     char* pcContextAddress;
     
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    BOOL bPreviousFlag;
-
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
-    //////////////////////////////////////////////////////////////////////////////// 
-    
     // 전환할 태스크가 없으면 종료
     pstNextTask = kGetNextTaskToRun();
     if( pstNextTask == NULL )
-    { 
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역의 끝
-        kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
+    {
         return FALSE;
     }
     
@@ -610,17 +482,6 @@ BOOL kScheduleInInterrupt( void )
         kMemCpy( &( pstRunningTask->stContext ), pcContextAddress, sizeof( CONTEXT ) );
         kAddTaskToReadyList( pstRunningTask );
     }
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역 끝
-    kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
-
 ////////////////////////////////////////////////////////////////////////////////
 
     // 전환해서 실행할 태스크를 Running Task로 설정하고 콘텍스트를 IST에 복사해서
@@ -668,17 +529,6 @@ BOOL kEndTask( QWORD qwTaskID )
     TCB* pstTarget;
     BYTE bPriority;
     
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    BOOL bPreviousFlag;
-
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
-    //////////////////////////////////////////////////////////////////////////////// 
-    
     // 현재 실행중인 태스크이면 EndTask 비트를 설정하고 태스크를 전환
     pstTarget = gs_stScheduler.pstRunningTask;
     if( pstTarget->stLink.qwID == qwTaskID )
@@ -686,14 +536,6 @@ BOOL kEndTask( QWORD qwTaskID )
         pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
         SETPRIORITY( pstTarget->qwFlags, TASK_FLAGS_WAIT );
         
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-        // 임계 영역 끝
-        kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
         kSchedule();
         
         // 태스크가 전환 되었으므로 아래 코드는 절대 실행되지 않음
@@ -714,16 +556,7 @@ BOOL kEndTask( QWORD qwTaskID )
                 pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
                 SETPRIORITY( pstTarget->qwFlags, TASK_FLAGS_WAIT );
             }
-            
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-            // 임계 영역의 끝
-            kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
-            return TRUE;
+            return FALSE;
         }
         
         pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
@@ -749,31 +582,12 @@ int kGetReadyTaskCount( void )
     int iTotalCount = 0;
     int i;
     
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    BOOL bPreviousFlag;
-
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
-    //////////////////////////////////////////////////////////////////////////////// 
-    
     // 모든 준비 큐를 확인하여 태스크 개수를 구함
     for( i = 0 ; i < TASK_MAXREADYLISTCOUNT ; i++ )
     {
         iTotalCount += kGetListCount( &( gs_stScheduler.vstReadyList[ i ] ) );
     }
     
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역 끝
-    kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
     return iTotalCount ;
 }
 
@@ -784,37 +598,10 @@ int kGetTaskCount( void )
 {
     int iTotalCount;
     
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    BOOL bPreviousFlag;
-    //////////////////////////////////////////////////////////////////////////////// 
     // 준비 큐의 태스크 수를 구한 후, 대기 큐의 태스크 수와 현재 수행 중인 태스크 수를 더함
     iTotalCount = kGetReadyTaskCount();
-
-
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역 시작
-    bPreviousFlag = kLockForSystemData();
-    //////////////////////////////////////////////////////////////////////////////// 
-
     iTotalCount += kGetListCount( &( gs_stScheduler.stWaitList ) ) + 1;
 
-
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    // 임계 영역 끝
-    kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
     return iTotalCount;
 }
 
@@ -869,15 +656,6 @@ void kIdleTask( void )
     QWORD qwLastMeasureTickCount, qwLastSpendTickInIdleTask;
     QWORD qwCurrentMeasureTickCount, qwCurrentSpendTickInIdleTask;
     
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-    BOOL bPreviousFlag;
-    QWORD qwTaskID;
-    //////////////////////////////////////////////////////////////////////////////// 
-    
     // 프로세서 사용량 계산을 위해 기준 정보를 저장
     qwLastSpendTickInIdleTask = gs_stScheduler.qwSpendProcessorTimeInIdleTask;
     qwLastMeasureTickCount = kGetTickCount();
@@ -914,41 +692,14 @@ void kIdleTask( void )
         {
             while( 1 )
             {
-                
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-                // 임계 영역 시작
-                bPreviousFlag = kLockForSystemData();
-    //////////////////////////////////////////////////////////////////////////////// 
                 pstTask = kRemoveListFromHeader( &( gs_stScheduler.stWaitList ) );
                 if( pstTask == NULL )
                 {
-                    
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-                    // 임계 영역 끝
-                    kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
                     break;
                 }
-    ////////////////////////////////////////////////////////////////////////////////
-    //
-    //  태스크와 인터럽트, 태스크와 태스크 사이의 동기화 문제를 해결하자
-    //
-    //////////////////////////////////////////////////////////////////////////////// 
-                qwTaskID = pstTask->stLink.qwID;
-                kFreeTCB(qwTaskID);
-                // 임계 영역 끝
-                kUnlockForSystemData(bPreviousFlag);
-    //////////////////////////////////////////////////////////////////////////////// 
                 kPrintf( "IDLE: Task ID[0x%q] is completely ended.\n", 
                         pstTask->stLink.qwID );
+                kFreeTCB( pstTask->stLink.qwID );
             }
         }
         

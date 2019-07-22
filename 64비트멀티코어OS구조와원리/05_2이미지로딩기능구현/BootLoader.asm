@@ -245,9 +245,8 @@ PRINTMESSAGE:
                                 ; 비디오 메모리는 (문자, 속성)의 쌍으로 구성되므로 문자만 출력하려면
                                 ; 2를 더해야 한다.
 
-    mov ax, byte[ bp + 8 ]      ; ax -> 8, al
+    mov al, byte[ bp + 8 ]      ;
     mov byte[es:di], al
-
     add di, 1
 
     jmp .MESSAGELOOP            ; 메시지 출력 루프로 이동하여 다음 문자를 출력한다.

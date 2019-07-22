@@ -157,17 +157,17 @@ typedef struct kSchedulerStruct
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// 함수 
+// 함수
 //
 ////////////////////////////////////////////////////////////////////////////////
 //==============================================================================
 //  태스크 풀과 태스크 관련
 //==============================================================================
-static void kInitializeTCBPool( void );
-static TCB* kAllocateTCB( void );
-static void kFreeTCB( QWORD qwID );
+void kInitializeTCBPool( void );
+TCB* kAllocateTCB( void );
+void kFreeTCB( QWORD qwID );
 TCB* kCreateTask( QWORD qwFlags, QWORD qwEntryPointAddress );
-static void kSetUpTask( TCB* pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
+void kSetUpTask( TCB* pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
         void* pvStackAddress, QWORD qwStackSize );
 
 //==============================================================================
@@ -176,8 +176,8 @@ static void kSetUpTask( TCB* pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress,
 void kInitializeScheduler( void );
 void kSetRunningTask( TCB* pstTask );
 TCB* kGetRunningTask( void );
-static TCB* kGetNextTaskToRun( void );
-static BOOL kAddTaskToReadyList( TCB* pstTask );
+TCB* kGetNextTaskToRun( void );
+BOOL kAddTaskToReadyList( TCB* pstTask );
 void kSchedule( void );
 BOOL kScheduleInInterrupt( void );
 void kDecreaseProcessorTime( void );
@@ -188,7 +188,7 @@ BOOL kIsProcessorTimeExpired( void );
 // 멀티레벨 큐 스케줄러와 태스크 종료기능 추가
 //
 ////////////////////////////////////////////////////////////////////////////////
-static TCB* kRemoveTaskFromReadyList( QWORD qwTaskID );
+TCB* kRemoveTaskFromReadyList( QWORD qwTaskID );
 BOOL kChangePriority( QWORD qwID, BYTE bPriority );
 BOOL kEndTask( QWORD qwTaskID );
 void kExitTask( void );
