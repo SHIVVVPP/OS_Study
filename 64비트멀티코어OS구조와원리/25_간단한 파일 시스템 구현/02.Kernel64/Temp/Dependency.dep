@@ -1,5 +1,7 @@
 Task.o: ../Source/Task.c ../Source/Task.h ../Source/Types.h \
  ../Source/List.h ../Source/Descriptor.h
+HardDisk.o: ../Source/HardDisk.c ../Source/HardDisk.h ../Source/Types.h \
+ ../Source/Synchronization.h
 RTC.o: ../Source/RTC.c ../Source/RTC.h ../Source/Types.h
 Keyboard.o: ../Source/Keyboard.c ../Source/Types.h \
  ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h \
@@ -14,15 +16,28 @@ Descriptor.o: ../Source/Descriptor.c ../Source/Descriptor.h \
 InterruptHandler.o: ../Source/InterruptHandler.c \
  ../Source/InterruptHandler.h ../Source/Types.h ../Source/PIC.h \
  ../Source/Keyboard.h ../Source/Console.h ../Source/Utility.h \
- ../Source/Task.h ../Source/List.h ../Source/Descriptor.h
+ ../Source/Task.h ../Source/List.h ../Source/Descriptor.h \
+ ../Source/AssemblyUtility.h ../Source/HardDisk.h \
+ ../Source/Synchronization.h
 List.o: ../Source/List.c ../Source/List.h ../Source/Types.h
-Queue.o: ../Source/Queue.c ../Source/Queue.h ../Source/Types.h
+DynamicMemory.o: ../Source/DynamicMemory.c ../Source/DynamicMemory.h \
+ ../Source/Types.h ../Source/Utility.h ../Source/Task.h ../Source/List.h
 PIT.o: ../Source/PIT.c ../Source/PIT.h ../Source/Types.h
+Queue.o: ../Source/Queue.c ../Source/Queue.h ../Source/Types.h
+Synchronization.o: ../Source/Synchronization.c \
+ ../Source/Synchronization.h ../Source/Types.h ../Source/Utility.h \
+ ../Source/Task.h ../Source/List.h
 ConsoleShell.o: ../Source/ConsoleShell.c ../Source/ConsoleShell.h \
  ../Source/Types.h ../Source/Console.h ../Source/Keyboard.h \
  ../Source/Utility.h ../Source/PIT.h ../Source/RTC.h \
- ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h
+ ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h \
+ ../Source/Synchronization.h ../Source/DynamicMemory.h \
+ ../Source/HardDisk.h ../Source/FileSystem.h
 Main.o: ../Source/Main.c ../Source/Types.h ../Source/Keyboard.h \
  ../Source/Descriptor.h ../Source/PIC.h ../Source/Console.h \
  ../Source/ConsoleShell.h ../Source/Task.h ../Source/List.h \
- ../Source/PIT.h
+ ../Source/PIT.h ../Source/DynamicMemory.h ../Source/HardDisk.h \
+ ../Source/Synchronization.h ../Source/FileSystem.h
+FileSystem.o: ../Source/FileSystem.c ../Source/FileSystem.h \
+ ../Source/Types.h ../Source/Synchronization.h ../Source/HardDisk.h \
+ ../Source/DynamicMemory.h
