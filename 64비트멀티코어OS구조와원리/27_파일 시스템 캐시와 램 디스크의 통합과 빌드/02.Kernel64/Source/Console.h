@@ -81,4 +81,8 @@ void kClearScreenOnlyAttr(void);
 BYTE kGetCh( void );
 void kPrintStringXY( int iX, int iY, const char* pcString );
 
+void kSetConsoleBackAttr(BYTE back);
+void kSetConsoleForeAttr(BYTE fore);
+BYTE kGetConsoleAttr();
+
 #endif /*__CONSOLE_H__*/

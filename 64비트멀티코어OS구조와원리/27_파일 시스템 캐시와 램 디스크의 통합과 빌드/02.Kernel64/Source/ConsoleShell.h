@@ -65,6 +65,9 @@ static void kShowTotalRAMSize( const char* pcParameterBuffer );
 static void kStringToDecimalHexTest( const char* pcParameterBuffer );
 static void kShutdown( const char* pcParameterBuffer );
 
+static void kConsoleBackGround(const char* pcParameterBuffer);
+static void kConsoleForeGround(const char* pcParameterBuffer);
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // 타이머 디바이스 드라이버 추가

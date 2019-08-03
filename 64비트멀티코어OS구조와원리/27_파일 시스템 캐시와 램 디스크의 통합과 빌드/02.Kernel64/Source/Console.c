@@ -5,6 +5,7 @@
 // 콘솔의 정보를 관리하는 자료구조
 CONSOLEMANAGER gs_stConsoleManager = { 0, };
 
+BYTE g_ConsoleColor = CONSOLE_DEFAULTTEXTCOLOR;
 /**
  *  콘솔 초기화
  */
@@ -111,7 +112,7 @@ int kConsolePrintString( const char* pcBuffer )
             // 비디오 메모리에 문자와 속성을 설정하여 문자를 출력하고
             // 출력할 위치를 다음으로 이동
             pstScreen[ iPrintOffset ].bCharactor = pcBuffer[ i ];
-            pstScreen[ iPrintOffset ].bAttribute = CONSOLE_DEFAULTTEXTCOLOR;
+            pstScreen[ iPrintOffset ].bAttribute = g_ConsoleColor;
             iPrintOffset++;
         }
         
@@ -129,7 +130,7 @@ int kConsolePrintString( const char* pcBuffer )
             {
                 // 공백 출력
                 pstScreen[ j ].bCharactor = ' ';
-                pstScreen[ j ].bAttribute = CONSOLE_DEFAULTTEXTCOLOR;
+                pstScreen[ j ].bAttribute = g_ConsoleColor;
             }
             
             // 출력할 위치를 가장 아래쪽 라인의 처음으로 설정
@@ -151,7 +152,7 @@ void kClearScreen( void )
     for( i = 0 ; i < CONSOLE_WIDTH * CONSOLE_HEIGHT ; i++ )
     {
         pstScreen[ i ].bCharactor = ' ';
-        pstScreen[ i ].bAttribute = CONSOLE_DEFAULTTEXTCOLOR;
+        pstScreen[ i ].bAttribute = g_ConsoleColor;
     }
     
     // 커서를 화면 상단으로 이동
@@ -196,7 +197,35 @@ void kPrintStringXY( int iX, int iY, const char* pcString )
     for( i = 0 ; pcString[ i ] != 0 ; i++ )
     {
         pstScreen[ i ].bCharactor = pcString[ i ];
-        pstScreen[ i ].bAttribute = CONSOLE_DEFAULTTEXTCOLOR;
+        pstScreen[ i ].bAttribute = g_ConsoleColor;
     }
 }
 
+
+void kSetConsoleBackAttr(BYTE back)
+{
+	g_ConsoleColor &= 0x0F;
+	g_ConsoleColor |= back;
+}
+
+void kSetConsoleForeAttr(BYTE fore)
+{
+	g_ConsoleColor &= 0xF0;
+	g_ConsoleColor |= fore;
+}
+
+BYTE kGetConsoleAttr()
+{
+	return g_ConsoleColor;
+}
+
+void kClearScreenOnlyAttr(void)
+{
+	CHARACTER* pstScreen = ( CHARACTER* ) CONSOLE_VIDEOMEMORYADDRESS;
+    int i;
+    
+    for( i = 0 ; i < CONSOLE_WIDTH * CONSOLE_HEIGHT ; i++ )
+    {
+        pstScreen[ i ].bAttribute = g_ConsoleColor;
+    }
+}

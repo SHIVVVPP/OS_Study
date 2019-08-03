@@ -49,7 +49,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         { "totalram", "Show Total RAM Size", kShowTotalRAMSize },
         { "strtod", "String To Decial/Hex Convert", kStringToDecimalHexTest },
         { "shutdown", "Shutdown And Reboot OS", kShutdown },
-        
+		{ "changeBackColor", "Change Console Background Color", kConsoleBackGround},
+		{ "changeForeColor", "Change Console Foreground Color", kConsoleForeGround},
         ////////////////////////////////////////////////////////////////////////////////
         //
         // 타이머 디바이스 드라이버 추가
@@ -2423,3 +2424,197 @@ static void kFlushCache( const char* pcParameterBuffer )
     kPrintf( "Total Time = %d ms\n", kGetTickCount() - qwTickCount );
 }
 ///////////////////////////////////////////////////////////////////
+
+
+/*
+static void kStringToDecimalHexTest( const char* pcParameterBuffer )
+{
+    char vcParameter[ 100 ];
+    int iLength;
+    PARAMETERLIST stList;
+    int iCount = 0;
+    long lValue;
+    
+    // 파라미터 초기화
+    kInitializeParameter( &stList, pcParameterBuffer );
+    
+    while( 1 )
+    {
+        // 다음 파라미터를 구함, 파라미터의 길이가 0이면 파라미터가 없는 것이므로
+        // 종료
+        iLength = kGetNextParameter( &stList, vcParameter );
+        if( iLength == 0 )
+        {
+            break;
+        }
+
+        // 파라미터에 대한 정보를 출력하고 16진수인지 10진수인지 판단하여 변환한 후
+        // 결과를 printf로 출력
+        kPrintf( "Param %d = '%s', Length = %d, ", iCount + 1, 
+                 vcParameter, iLength );
+
+        // 0x로 시작하면 16진수, 그외는 10진수로 판단
+        if( kMemCmp( vcParameter, "0x", 2 ) == 0 )
+        {
+            lValue = kAToI( vcParameter + 2, 16 );
+            kPrintf( "HEX Value = %q\n", lValue );
+        }
+        else
+        {
+            lValue = kAToI( vcParameter, 10 );
+            kPrintf( "Decimal Value = %d\n", lValue );
+        }
+        
+        iCount++;
+    }
+}
+*/
+
+static void kConsoleBackGround(const char* pcParameterBuffer)
+{
+	char vcParameter[100];
+	int iLength;
+	PARAMETERLIST stList;
+	
+	kInitializeParameter(&stList,pcParameterBuffer);
+	
+	while(1)
+	{
+		iLength = kGetNextParameter(&stList,vcParameter);
+		if(iLength == 0)
+		{
+			break;
+		}
+		
+		long lValue;
+		lValue = kAToI(vcParameter,10);
+		BYTE color;
+		switch(lValue)
+		{
+			case 0:
+			color = 0x00;
+			break;
+			case 1:
+			color = 0x10;
+			break;
+			case 2:
+			color = 0x20;
+			break;
+			case 3:
+			color = 0x30;
+			break;
+			case 4:
+			color = 0x40;
+			break;
+			case 5:
+			color = 0x50;
+			break;
+			case 6:
+			color = 0x60;
+			break;
+			case 7:
+			color = 0x70;
+			break;
+			case 8:
+			color = 0x80;
+			break;
+			case 9:
+			color = 0x90;
+			break;
+			case 10:
+			color = 0xA0;
+			break;
+			case 11:
+			color = 0xB0;
+			break;
+			case 12:
+			color = 0xC0;
+			break;
+			case 13:
+			color = 0xD0;
+			break;
+			case 14:
+			color = 0xE0;
+			break;
+			case 15:
+			color = 0xF0;
+			break;
+		}
+		kSetConsoleBackAttr(color);
+		kClearScreenOnlyAttr();
+	}
+}
+static void kConsoleForeGround(const char* pcParameterBuffer)
+{
+	char vcParameter[100];
+	int iLength;
+	PARAMETERLIST stList;
+	
+	kInitializeParameter(&stList,pcParameterBuffer);
+	
+	while(1)
+	{
+		iLength = kGetNextParameter(&stList,vcParameter);
+		if(iLength == 0)
+		{
+			break;
+		}
+		
+		long lValue;
+		lValue = kAToI(vcParameter,10);
+		BYTE color;
+		switch(lValue)
+		{
+			case 0:
+			color = 0x00;
+			break;
+			case 1:
+			color = 0x01;
+			break;
+			case 2:
+			color = 0x02;
+			break;
+			case 3:
+			color = 0x03;
+			break;
+			case 4:
+			color = 0x04;
+			break;
+			case 5:
+			color = 0x05;
+			break;
+			case 6:
+			color = 0x06;
+			break;
+			case 7:
+			color = 0x07;
+			break;
+			case 8:
+			color = 0x08;
+			break;
+			case 9:
+			color = 0x09;
+			break;
+			case 10:
+			color = 0x0A;
+			break;
+			case 11:
+			color = 0x0B;
+			break;
+			case 12:
+			color = 0x0C;
+			break;
+			case 13:
+			color = 0x0D;
+			break;
+			case 14:
+			color = 0x0E;
+			break;
+			case 15:
+			color = 0x0F;
+			break;
+		}
+		kSetConsoleForeAttr(color);
+		kClearScreenOnlyAttr();
+	}
+}
