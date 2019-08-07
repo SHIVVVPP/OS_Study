@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "harddisk.h": "c"
+        "harddisk.h": "c",
+        "mpconfigurationtable.h": "c"
     }
 }
